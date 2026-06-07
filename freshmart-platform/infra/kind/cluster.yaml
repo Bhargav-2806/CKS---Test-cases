@@ -1,0 +1,38 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart CKS — Kind Cluster Configuration
+# 3-node cluster: 1 control-plane + 2 workers
+# ─────────────────────────────────────────────────────────────────────────────
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: freshmart-cks
+
+nodes:
+  # ── Control-plane ────────────────────────────────────────────────────────
+  - role: control-plane
+    # Label this node so ingress-nginx DaemonSet selects it
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    # Port mappings so browser can reach ingress on localhost
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+
+  # ── Worker 1 ──────────────────────────────────────────────────────────────
+  - role: worker
+
+  # ── Worker 2 ──────────────────────────────────────────────────────────────
+  - role: worker
+
+# ── Networking ────────────────────────────────────────────────────────────────
+networking:
+  podSubnet:     "10.244.0.0/16"
+  serviceSubnet: "10.96.0.0/12"

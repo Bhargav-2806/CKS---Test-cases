@@ -1,0 +1,39 @@
+# =============================================================================
+# ConstraintTemplate: K8sNoHostPath
+# Blocks pods from mounting host filesystem paths via hostPath volumes.
+# CKS Domain: Minimize Microservice Vulnerabilities (20%)
+# =============================================================================
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8snohostpath
+  annotations:
+    description: >
+      Reject pods that mount host directories via hostPath volumes.
+      A hostPath mount gives a container direct access to the node's filesystem,
+      including /etc/shadow, kubeconfig files, and container runtime sockets —
+      all common container escape techniques.
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sNoHostPath
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8snohostpath
+
+        # ─── violations ───────────────────────────────────────────────────────
+
+        violation[{"msg": msg}] {
+          volume := input.review.object.spec.volumes[_]
+          volume.hostPath
+          msg := sprintf(
+            "Pod '%v' uses hostPath volume '%v' (path: %v). Use PVC, emptyDir, or ConfigMap instead. hostPath exposes the node filesystem to the container.",
+            [
+              input.review.object.metadata.name,
+              volume.name,
+              volume.hostPath.path
+            ]
+          )
+        }

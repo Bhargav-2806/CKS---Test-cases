@@ -1,0 +1,93 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — nginx Ingress
+# CKS Domain: Cluster Setup
+#
+# Routing (localhost:80 → Kind extraPortMappings → ingress-nginx):
+#   /api/products*  →  product-service:8001  (tesco-core)
+#   /api/cart*      →  cart-service:8002     (tesco-core)
+#   /api/orders*    →  order-service:8003    (tesco-core)
+#   /               →  frontend:3000         (tesco-frontend)
+#
+# NOTE: /api/payments is intentionally NOT routed here.
+#       payment-service is internal-only — accessible only from order-service
+#       via NetworkPolicy. No public ingress route = CKS zero-trust.
+#
+# NOTE on configuration-snippet:
+#   Disabled by default in nginx-ingress 1.10+ (CVE-based hardening).
+#   Security response headers (X-Frame-Options, CSP etc.) are added in Phase 4
+#   via a dedicated nginx ConfigMap patch.
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+# ── API Ingress (tesco-core) ──────────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: freshmart-api
+  namespace: tesco-core
+  labels:
+    app.kubernetes.io/part-of: freshmart
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size:       "1m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout:    "30"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+    # Proxy buffering — improves performance for JSON APIs
+    nginx.ingress.kubernetes.io/proxy-buffering:       "on"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          # Product Service — Prefix handles /api/products and /api/products/123
+          - path: /api/products
+            pathType: Prefix
+            backend:
+              service:
+                name: product-service
+                port:
+                  number: 8001
+
+          # Cart Service
+          - path: /api/cart
+            pathType: Prefix
+            backend:
+              service:
+                name: cart-service
+                port:
+                  number: 8002
+
+          # Order Service
+          - path: /api/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 8003
+
+---
+# ── Frontend Ingress (tesco-frontend) — catch-all ────────────────────────────
+# Must have lower priority than API ingress.
+# nginx ingress resolves by longest path match, so /api/* wins over /
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: freshmart-frontend
+  namespace: tesco-frontend
+  labels:
+    app.kubernetes.io/part-of: freshmart
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout:    "60"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000

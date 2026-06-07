@@ -1,0 +1,26 @@
+# =============================================================================
+# Constraint: freshmart-no-hostpath
+# enforcementAction: deny — hard block
+#
+# Blocks hostPath volume mounts in application namespaces.
+# A hostPath mount to /etc, /var/run/docker.sock, or /proc can trivially
+# escalate to node root. This is one of the most common CKS exam scenarios.
+# =============================================================================
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sNoHostPath
+metadata:
+  name: freshmart-no-hostpath
+  annotations:
+    description: "Block hostPath volume mounts. Use PVC or emptyDir instead."
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    namespaces:
+      - tesco-core
+      - tesco-payments
+      - tesco-frontend
+      - tesco-data
+      - tesco-messaging

@@ -1,0 +1,62 @@
+# =============================================================================
+# ConstraintTemplate: K8sRequireResourceLimits
+# Every container must declare CPU and memory limits.
+# CKS Domain: Minimize Microservice Vulnerabilities (20%)
+# Also: Cluster Hardening — prevents noisy-neighbour / DoS
+# =============================================================================
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequireresourcelimits
+  annotations:
+    description: >
+      Reject pods where any container is missing CPU or memory resource limits.
+      Without limits a single compromised container can starve the node,
+      causing a denial-of-service across all workloads on that node.
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequireResourceLimits
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequireresourcelimits
+
+        # ─── violations ───────────────────────────────────────────────────────
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not container.resources.limits.cpu
+          msg := sprintf(
+            "Container '%v' must set resources.limits.cpu. Unlimited CPU enables denial-of-service.",
+            [container.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not container.resources.limits.memory
+          msg := sprintf(
+            "Container '%v' must set resources.limits.memory. Unlimited memory enables OOM-based DoS.",
+            [container.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.initContainers[_]
+          not container.resources.limits.cpu
+          msg := sprintf(
+            "InitContainer '%v' must set resources.limits.cpu.",
+            [container.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.initContainers[_]
+          not container.resources.limits.memory
+          msg := sprintf(
+            "InitContainer '%v' must set resources.limits.memory.",
+            [container.name]
+          )
+        }

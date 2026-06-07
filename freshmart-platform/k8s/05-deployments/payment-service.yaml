@@ -1,0 +1,118 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — payment-service Deployment + Service
+# Namespace: tesco-payments   PSA: restricted
+# Image:     freshmart/payment-service:latest  (Go binary in distroless/static)
+#
+# CKS Showpiece:
+#   • distroless/static image — zero OS attack surface
+#   • No public ingress route — only order-service can reach it (NetworkPolicy)
+#   • Strictest resource limits of all services
+#   • Non-root uid 65532 (distroless nonroot)
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: tesco-payments
+  labels:
+    app: payment-service
+    app.kubernetes.io/part-of: freshmart
+    security-tier: critical              # used by NetworkPolicy selector
+spec:
+  replicas: 1                            # single replica — payment idempotency requires care
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+        app.kubernetes.io/part-of: freshmart
+        security-tier: critical
+    spec:
+      serviceAccountName: payment-service-sa
+      automountServiceAccountToken: false
+
+      # CKS: distroless nonroot = uid 65532
+      securityContext:
+        runAsNonRoot: true
+        runAsUser:    65532
+        runAsGroup:   65532
+        fsGroup:      65532
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: payment-service
+          image: freshmart/payment-service:latest
+          imagePullPolicy: Never
+
+          ports:
+            - name: http
+              containerPort: 8004
+              protocol: TCP
+
+          # CKS: strictest container security context
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem:   true   # Go static binary — truly read-only FS
+            capabilities:
+              drop: ["ALL"]
+
+          envFrom:
+            - configMapRef:
+                name: payment-service-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key:  DATABASE_URL
+
+          # Tight resource limits — this service should be fast and lean
+          resources:
+            requests:
+              cpu:    "20m"
+              memory: "32Mi"
+            limits:
+              cpu:    "100m"
+              memory: "64Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            failureThreshold: 3
+
+---
+# ClusterIP — only reachable within the cluster
+# NetworkPolicy in 07-network-policies/ restricts access to order-service only
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: tesco-payments
+  labels:
+    app: payment-service
+    app.kubernetes.io/part-of: freshmart
+spec:
+  type: ClusterIP     # deliberately NOT exposed via Ingress
+  selector:
+    app: payment-service
+  ports:
+    - name: http
+      port: 8004
+      targetPort: 8004
+      protocol: TCP

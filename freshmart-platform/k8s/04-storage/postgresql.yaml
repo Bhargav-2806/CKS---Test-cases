@@ -1,0 +1,122 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — PostgreSQL StatefulSet
+# Namespace: tesco-data
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+# Headless service for stable pod DNS
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  namespace: tesco-data
+  labels:
+    app: postgresql
+    app.kubernetes.io/part-of: freshmart
+spec:
+  clusterIP: None   # headless — pods get stable DNS: postgresql.tesco-data.svc.cluster.local
+  selector:
+    app: postgresql
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+  namespace: tesco-data
+  labels:
+    app: postgresql
+    app.kubernetes.io/part-of: freshmart
+spec:
+  serviceName: postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+        app.kubernetes.io/part-of: freshmart
+    spec:
+      serviceAccountName: postgresql-sa
+      automountServiceAccountToken: false
+
+      # postgres:16-alpine runs as uid 999 (postgres) — compatible with baseline PSA
+      securityContext:
+        fsGroup: 999
+        runAsUser: 999
+        runAsGroup: 999
+
+      # initContainer: Kind's local-path-provisioner creates the PVC dir owned by root.
+      # PostgreSQL (uid 999) can't chmod a root-owned dir, so we fix ownership first.
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.35
+          command: ['sh', '-c', 'mkdir -p /data/pgdata && chown -R 999:999 /data/pgdata']
+          securityContext:
+            runAsUser: 0          # root — allowed under baseline PSA
+          volumeMounts:
+            - name: data
+              mountPath: /data    # mount PVC root (no subPath) so we can mkdir pgdata
+
+      containers:
+        - name: postgresql
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: postgres
+              containerPort: 5432
+
+          envFrom:
+            - secretRef:
+                name: postgresql-credentials
+
+          resources:
+            requests:
+              cpu:    "100m"
+              memory: "256Mi"
+            limits:
+              cpu:    "500m"
+              memory: "512Mi"
+
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "freshmart", "-d", "freshmart"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 6
+
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "freshmart", "-d", "freshmart"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata          # avoids "lost+found" issue on some filesystems
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+
+      volumes:
+        - name: init-sql
+          configMap:
+            name: postgresql-init    # created by setup.sh from infra/db/init.sql
+
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi

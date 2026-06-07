@@ -1,0 +1,149 @@
+{
+  "_comment": "FreshMart custom seccomp — payment-service (most restrictive)",
+  "_runtime": "gcr.io/distroless/static-debian12 + static Go binary",
+  "_phase": "4.5 CKS System Hardening",
+  "_rationale": "Static Go binary needs far fewer syscalls than Python. No shell, no dynamic linking, no package manager. Minimal attack surface.",
+
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "architectures": ["SCMP_ARCH_X86_64"],
+
+  "syscalls": [
+    {
+      "_comment": "KILL_PROCESS on the most critical dangerous syscalls",
+      "names": [
+        "ptrace",
+        "process_vm_readv",
+        "process_vm_writev",
+        "kexec_load",
+        "kexec_file_load",
+        "init_module",
+        "finit_module",
+        "delete_module",
+        "reboot",
+        "acct",
+        "mount",
+        "umount2",
+        "pivot_root",
+        "chroot"
+      ],
+      "action": "SCMP_ACT_KILL_PROCESS"
+    },
+    {
+      "_comment": "File I/O — Go runtime reads /proc, /etc/resolv.conf for DNS",
+      "names": [
+        "read", "write", "readv", "writev",
+        "pread64", "pwrite64",
+        "openat", "close",
+        "stat", "fstat", "lstat", "newfstatat",
+        "access", "faccessat",
+        "getcwd",
+        "readlink", "readlinkat",
+        "getdents64",
+        "lseek"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Memory — Go runtime allocator",
+      "names": [
+        "mmap", "munmap", "mprotect",
+        "madvise", "brk",
+        "getrandom",
+        "memfd_create"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Network — TCP for inbound :8004 + PostgreSQL :5432",
+      "names": [
+        "socket", "bind", "listen",
+        "accept", "accept4",
+        "connect", "shutdown",
+        "getsockname", "getpeername",
+        "setsockopt", "getsockopt",
+        "sendto", "sendmsg",
+        "recvfrom", "recvmsg"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "I/O multiplexing — Go net/http uses epoll",
+      "names": [
+        "epoll_create1", "epoll_ctl",
+        "epoll_wait", "epoll_pwait",
+        "poll", "ppoll",
+        "eventfd2",
+        "pipe2"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Process — Go goroutines use clone/futex",
+      "names": [
+        "getpid", "gettid",
+        "getuid", "getgid", "geteuid", "getegid",
+        "exit", "exit_group",
+        "clone", "clone3",
+        "set_tid_address",
+        "set_robust_list", "get_robust_list",
+        "futex", "futex_waitv",
+        "sched_yield",
+        "prctl",
+        "arch_prctl",
+        "seccomp",
+        "capget"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Signals — Go signal handling",
+      "names": [
+        "rt_sigaction", "rt_sigprocmask",
+        "rt_sigreturn",
+        "sigaltstack",
+        "tgkill"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Time — Go uses clock_gettime frequently",
+      "names": [
+        "clock_gettime", "clock_getres",
+        "nanosleep",
+        "gettimeofday"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "FD + misc",
+      "names": [
+        "dup", "dup2", "dup3",
+        "fcntl", "ioctl",
+        "uname",
+        "getrlimit", "prlimit64",
+        "sched_getaffinity"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Go runtime extras — added after startup failure diagnosis",
+      "names": [
+        "restart_syscall",
+        "sched_setscheduler",
+        "sched_getscheduler",
+        "sched_setparam",
+        "sched_rr_get_interval",
+        "rt_tgsigqueueinfo",
+        "getitimer", "setitimer",
+        "io_uring_setup", "io_uring_enter", "io_uring_register",
+        "setuid", "setgid",
+        "setresuid", "setresgid",
+        "capset",
+        "unshare",
+        "userfaultfd",
+        "perf_event_open"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    }
+  ]
+}

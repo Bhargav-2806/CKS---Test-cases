@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "surface-container-lowest": "#ffffff",
+                  "inverse-surface": "#313030",
+                  "on-primary-fixed-variant": "#0c5216",
+                  "tertiary-container": "#49554c",
+                  "on-tertiary-fixed-variant": "#3e4a41",
+                  "on-primary-fixed": "#002203",
+                  "surface-dim": "#dcd9d9",
+                  "on-primary": "#ffffff",
+                  "on-secondary-fixed-variant": "#793100",
+                  "error": "#ba1a1a",
+                  "inverse-on-surface": "#f3f0ef",
+                  "on-secondary-fixed": "#341100",
+                  "on-secondary": "#ffffff",
+                  "secondary-fixed-dim": "#ffb691",
+                  "on-error-container": "#93000a",
+                  "on-surface": "#1c1b1b",
+                  "on-surface-variant": "#41493e",
+                  "on-tertiary-container": "#bcc9be",
+                  "primary-fixed-dim": "#91d78a",
+                  "surface-bright": "#fcf9f8",
+                  "outline-variant": "#c0c9bb",
+                  "on-background": "#1c1b1b",
+                  "on-tertiary": "#ffffff",
+                  "inverse-primary": "#91d78a",
+                  "tertiary": "#323e36",
+                  "surface-container-highest": "#e5e2e1",
+                  "surface": "#fcf9f8",
+                  "secondary-container": "#fb6d00",
+                  "primary": "#00450d",
+                  "surface-container": "#f0eded",
+                  "on-error": "#ffffff",
+                  "on-secondary-container": "#562100",
+                  "surface-container-low": "#f6f3f2",
+                  "error-container": "#ffdad6",
+                  "on-tertiary-fixed": "#131e17",
+                  "primary-container": "#1b5e20",
+                  "tertiary-fixed-dim": "#bdcabe",
+                  "background": "#fcf9f8",
+                  "surface-container-high": "#eae7e7",
+                  "secondary-fixed": "#ffdbcb",
+                  "surface-variant": "#e5e2e1",
+                  "outline": "#717a6d",
+                  "on-primary-container": "#90d689",
+                  "tertiary-fixed": "#d9e6da",
+                  "secondary": "#9e4200",
+                  "surface-tint": "#2a6b2c",
+                  "primary-fixed": "#acf4a4"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "base": "4px",
+                  "md": "16px",
+                  "xxl": "48px",
+                  "margin-mobile": "16px",
+                  "container-max": "1280px",
+                  "margin-desktop": "32px",
+                  "gutter": "24px",
+                  "lg": "24px",
+                  "xl": "32px",
+                  "sm": "8px",
+                  "xs": "4px"
+          },
+          "fontFamily": {
+                  "headline-lg": ["Inter"],
+                  "body-md": ["Inter"],
+                  "headline-sm": ["Inter"],
+                  "label-lg": ["Inter"],
+                  "label-sm": ["Inter"],
+                  "headline-md": ["Inter"],
+                  "body-sm": ["Inter"],
+                  "display-lg": ["Inter"],
+                  "headline-lg-mobile": ["Inter"],
+                  "body-lg": ["Inter"]
+          },
+          "fontSize": {
+                  "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                  "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                  "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                  "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                  "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                  "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                  "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                  "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                  "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+    }
+    body { font-family: 'Inter', sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar Navigation Shell -->
+<header class="bg-surface-container-lowest dark:bg-surface-dim fixed top-0 w-full z-50 shadow-sm dark:shadow-none border-b border-outline-variant dark:border-outline">
+<div class="flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto">
+<div class="flex items-center gap-xl">
+<a class="text-headline-md font-headline-md font-black text-primary dark:text-primary-fixed" href="#">FreshMart</a>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="text-on-surface-variant dark:text-on-tertiary-container text-label-lg font-label-lg hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-transform duration-150" href="#">Home</a>
+<a class="text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1 text-label-lg font-label-lg hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-transform duration-150" href="#">Products</a>
+<a class="text-on-surface-variant dark:text-on-tertiary-container text-label-lg font-label-lg hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-transform duration-150" href="#">Orders</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden lg:flex items-center bg-surface-container rounded-full px-md py-xs border border-outline-variant">
+<span class="material-symbols-outlined text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm w-48" placeholder="Search groceries..." type="text"/>
+</div>
+<button class="flex items-center justify-center p-sm hover:bg-surface-container transition-colors rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined text-primary" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<button class="flex items-center justify-center p-sm hover:bg-surface-container transition-colors rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined text-primary" data-icon="person">person</span>
+</button>
+</div>
+</div>
+</header>
+<main class="pt-xxl mt-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto mb-xxl">
+<!-- Breadcrumb -->
+<nav class="flex py-md text-label-sm font-label-sm text-on-surface-variant gap-xs items-center">
+<a class="hover:text-primary" href="#">Home</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<a class="hover:text-primary" href="#">Products</a>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface font-semibold">Organic Avocados</span>
+</nav>
+<!-- Product Section -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-start mt-md">
+<!-- Left: High Quality Image -->
+<div class="md:col-span-7 lg:col-span-7">
+<div class="rounded-xl overflow-hidden shadow-sm border border-outline-variant bg-white aspect-[4/3] group cursor-zoom-in">
+<img alt="Organic Avocados" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A macro photograph of several perfectly ripe organic avocados sliced in half, showcasing the vibrant green creamy flesh and large brown pits. The avocados are arranged artistically on a rustic wooden surface under soft, natural daylight. The image has a fresh, high-quality retail aesthetic with clean lines and rich textures that emphasize health and vitality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZuO5ssnCEjiCFs6A3rh94kguS0_muHQslNcieKsHjmw8yo6E8GX764gpW9PQlUV8JklaBg3qhkTs_4YqCAdEk6m3ai7oXl_6rVU-GpRh-bwO9V5llZCMtfCqPSR6EuSjSDHgra1GcvzSf8l9QzpVqem05I7sobJGQwyk645cK4Yu4shATviEOXjIU0gfgz9Spqs7YXyQahmtt6Tr_pNL5ptxUDQmfzi-o81b0Ua3_9SjwtVZ22OCSnWFy7c3xivPOX77pl6Ivl5dU"/>
+</div>
+</div>
+<!-- Right: Product Info -->
+<div class="md:col-span-5 lg:col-span-5 flex flex-col gap-lg">
+<div>
+<span class="inline-block bg-primary-fixed text-on-primary-fixed px-sm py-xs rounded text-label-sm mb-sm">Bestseller</span>
+<h1 class="text-headline-lg font-headline-lg text-on-surface leading-tight">Organic Avocados</h1>
+<p class="text-display-lg font-display-lg text-secondary-container mt-xs">£2.00</p>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant leading-relaxed">
+          Creamy, ripe avocados perfect for salads or toast. Locally sourced and organic. Grown without synthetic pesticides, these avocados offer the highest nutritional value and the richest flavor profile for your healthy meals.
+        </p>
+<div class="flex flex-col gap-md border-y border-outline-variant py-lg">
+<div class="flex items-center gap-md">
+<span class="text-label-lg font-label-lg w-20">Quantity</span>
+<div class="flex items-center border border-outline rounded-lg bg-surface-container-lowest">
+<button class="p-sm hover:bg-surface-container transition-colors" onclick="decrementQty()"><span class="material-symbols-outlined">remove</span></button>
+<input class="w-12 text-center border-none focus:ring-0 bg-transparent font-bold" id="quantity" min="1" type="number" value="1"/>
+<button class="p-sm hover:bg-surface-container transition-colors" onclick="incrementQty()"><span class="material-symbols-outlined">add</span></button>
+</div>
+</div>
+<div class="flex items-center gap-sm text-on-primary-fixed-variant">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="text-label-sm">In stock &amp; ready to ship</span>
+</div>
+</div>
+<div class="flex flex-col gap-sm pt-sm">
+<button class="bg-primary-container text-on-primary text-headline-sm font-headline-sm py-md rounded-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">shopping_basket</span>
+            Add to Cart
+          </button>
+<button class="text-primary font-label-lg py-md border border-transparent hover:border-primary rounded-xl active:scale-[0.98] transition-all">
+            Continue Shopping
+          </button>
+</div>
+<!-- Trust Badges -->
+<div class="grid grid-cols-3 gap-sm pt-md">
+<div class="flex flex-col items-center text-center p-sm bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-primary mb-xs">eco</span>
+<span class="text-[10px] font-bold uppercase tracking-wider text-outline">Organic</span>
+</div>
+<div class="flex flex-col items-center text-center p-sm bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-primary mb-xs">local_shipping</span>
+<span class="text-[10px] font-bold uppercase tracking-wider text-outline">Fast Delivery</span>
+</div>
+<div class="flex flex-col items-center text-center p-sm bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-primary mb-xs">verified</span>
+<span class="text-[10px] font-bold uppercase tracking-wider text-outline">Certified</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Related Products -->
+<section class="mt-xxl">
+<div class="flex justify-between items-end mb-lg">
+<h2 class="text-headline-md font-headline-md">Related Products</h2>
+<a class="text-primary font-label-lg flex items-center gap-xs hover:underline" href="#">
+          View all <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+</div>
+<div class="flex overflow-x-auto gap-gutter pb-lg no-scrollbar snap-x">
+<!-- Card 1: Tomatoes -->
+<div class="min-w-[260px] flex-shrink-0 snap-start group border border-outline-variant rounded-xl bg-surface-container-lowest overflow-hidden shadow-sm hover:shadow-lg transition-all">
+<div class="h-48 overflow-hidden">
+<img alt="Tomatoes" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A bunch of vibrant red vine-ripened tomatoes captured in a bright, airy studio setting with professional food photography lighting. The tomatoes are plump and shiny, with green stems still attached, resting on a clean white surface that reflects a modern, premium supermarket aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0nMt010-ICYoS9cRv-lVwXDFJkZlpiT9FFGP_YgAWqbaJjlk7qv3a_4VwT55W7YRZ6IMS7BfM3NI7vcmZJsq9fetbB6vxPUqTcBujK5woM9wIDySIPri5bFe4ttWf41ZBUVXEqSbIUgXUaQh8QFMmKchUDxgmJaDDscVo1-xtWG54B_HJJSXZ79FIoZhSVaMow7dLr-mECRHWQox8DwZww98oWTorc905f48RS_tSaAGOLEMiT7fbOZi1NEAgLwxImVPvCy7U-qRJ"/>
+</div>
+<div class="p-md">
+<h3 class="font-headline-sm text-on-surface">Vine Tomatoes</h3>
+<p class="text-secondary-container font-bold text-lg mt-xs">£1.50</p>
+<button class="w-full mt-md py-sm bg-primary-fixed text-on-primary-fixed font-label-lg rounded-lg hover:bg-primary-fixed-dim transition-colors active:scale-95">Add to Cart</button>
+</div>
+</div>
+<!-- Card 2: Limes -->
+<div class="min-w-[260px] flex-shrink-0 snap-start group border border-outline-variant rounded-xl bg-surface-container-lowest overflow-hidden shadow-sm hover:shadow-lg transition-all">
+<div class="h-48 overflow-hidden">
+<img alt="Limes" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A collection of fresh green limes with pebbled textures, arranged neatly on a minimalist light gray background. The lighting is crisp and highlights the zesty freshness of the fruit, evoking a sense of citrus brightness and clean retail quality. The overall mood is energizing and premium." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa1SPtGFX9rhZU-5L9vWaZIw0iG_AUQdxDb5C4QKePUXk848ByRoEGYlNpyAwcCveo4NnnMFXyPSa2VE5OmpzzpjaPqllajOnjcPMoLsfAKCo168cBf0d8l04MnBbD4kAAwe11zS9HNvXUCE-TgWkGeL_etjMhzZ25PxiufJJiUq_r4qPQRmwpzSSo9ELfrxrfBdPZURDUb0A3KpDbGs0VDBuW1vuhaH4xILM7Cx7BUz05Z043USUwC1w-t2pOjTgEjn7JYKbYe9Ck"/>
+</div>
+<div class="p-md">
+<h3 class="font-headline-sm text-on-surface">Fresh Limes (3pk)</h3>
+<p class="text-secondary-container font-bold text-lg mt-xs">£0.95</p>
+<button class="w-full mt-md py-sm bg-primary-fixed text-on-primary-fixed font-label-lg rounded-lg hover:bg-primary-fixed-dim transition-colors active:scale-95">Add to Cart</button>
+</div>
+</div>
+<!-- Card 3: Bread -->
+<div class="min-w-[260px] flex-shrink-0 snap-start group border border-outline-variant rounded-xl bg-surface-container-lowest overflow-hidden shadow-sm hover:shadow-lg transition-all">
+<div class="h-48 overflow-hidden">
+<img alt="Bread" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A crusty artisanal sourdough loaf, freshly baked with a dusted flour topping, sitting on a natural linen cloth. The warm tones of the golden-brown crust are emphasized by soft morning sunlight streaming into a modern kitchen space. The scene communicates high-end bakery quality and home-style comfort." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMGcQ73PxBIVFeLboN3N1n0DJ53JqcElnw3nDb8UKPGUFcUveIkjKxb5MjP1H0_jJxlRvieWLjdDyXf9mUiFMbe_2YFZ1hkHkYVxFbgxmkDc2Nr7hGy0ewcMwkoLUZK9ZR-3SXxS6IZ_Qgx-POMjsO03y3tN0t_wAjrL8fl6jHvzFcK1JCi0K7ViZPH__D4pUt7Z45cwTu5r3W46DSIvgQ0MZES8Ug1r9Zlg9RSEej7qSjEIKMAz7EeA-dLD0vNLpmr2IDoIzsr2QO"/>
+</div>
+<div class="p-md">
+<h3 class="font-headline-sm text-on-surface">Artisan Sourdough</h3>
+<p class="text-secondary-container font-bold text-lg mt-xs">£3.20</p>
+<button class="w-full mt-md py-sm bg-primary-fixed text-on-primary-fixed font-label-lg rounded-lg hover:bg-primary-fixed-dim transition-colors active:scale-95">Add to Cart</button>
+</div>
+</div>
+<!-- Card 4: Lemons -->
+<div class="min-w-[260px] flex-shrink-0 snap-start group border border-outline-variant rounded-xl bg-surface-container-lowest overflow-hidden shadow-sm hover:shadow-lg transition-all">
+<div class="h-48 overflow-hidden">
+<img alt="Lemons" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Bright yellow ripe lemons with waxy textures displayed in a modern white ceramic bowl on a sunlit marble countertop. The high-contrast lighting creates crisp shadows, suggesting a high-end, clean grocery store environment. The image is fresh, vibrant, and highlights the natural beauty of the citrus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO2Wy4NHsEh6BMsBqcX8XcKavfLWBuCG9VDOzOXExLSyPb2dJjE-yfjs45ly7ivQ8d4x7VqrXJwMOomF4-lQMV3vrCY2K85f0jeKP5hKmMod9Xt2pN7DPNb_NjGw-m7mxQOYevZK1mp03lZ0gHdpTKo2xVQmd3JLhijs5PwmMGoENjTr9dSZykYC4oC_EV_T0m-GmNM6weHQdTou_8x92PC-SLd15MZI9PEBuQwNW9ZkbsYrxOlbZHaPxLwpNpnkC7jP2TTHSXSW6j"/>
+</div>
+<div class="p-md">
+<h3 class="font-headline-sm text-on-surface">Organic Lemons</h3>
+<p class="text-secondary-container font-bold text-lg mt-xs">£1.20</p>
+<button class="w-full mt-md py-sm bg-primary-fixed text-on-primary-fixed font-label-lg rounded-lg hover:bg-primary-fixed-dim transition-colors active:scale-95">Add to Cart</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Navigation Shell -->
+<footer class="bg-surface-container dark:bg-surface-container-highest w-full py-xxl mt-xxl">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop max-w-container-max mx-auto">
+<div class="flex flex-col gap-md">
+<h2 class="text-headline-sm font-headline-sm font-bold text-primary">FreshMart</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant max-w-xs">Reliable, fresh, and high-quality groceries delivered straight to your door with love and efficiency.</p>
+</div>
+<div class="flex flex-col gap-sm">
+<h3 class="text-label-lg font-bold text-on-surface mb-xs">Shop</h3>
+<a class="text-on-surface-variant dark:text-outline text-label-sm font-label-sm hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Vegetables</a>
+<a class="text-on-surface-variant dark:text-outline text-label-sm font-label-sm hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Fruits</a>
+<a class="text-on-surface-variant dark:text-outline text-label-sm font-label-sm hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Bakery</a>
+<a class="text-on-surface-variant dark:text-outline text-label-sm font-label-sm hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Dairy</a>
+</div>
+<div class="flex flex-col gap-sm">
+<h3 class="text-label-lg font-bold text-on-surface mb-xs">Company</h3>
+<a class="text-on-surface-variant dark:text-outline text-label-sm font-label-sm hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">About Us</a>
+<a class="text-on-surface-variant dark:text-outline text-label-sm font-label-sm hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Contact Us</a>
+<a class="text-on-surface-variant dark:text-outline text-label-sm font-label-sm hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant dark:text-outline text-label-sm font-label-sm hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Terms of Service</a>
+</div>
+<div class="flex flex-col gap-md">
+<h3 class="text-label-lg font-bold text-on-surface mb-xs">Newsletter</h3>
+<p class="text-body-sm text-on-surface-variant">Get fresh deals delivered daily.</p>
+<div class="flex gap-xs">
+<input class="bg-surface-container-lowest border-outline rounded px-sm py-xs text-body-sm focus:ring-primary w-full" placeholder="Your email" type="email"/>
+<button class="bg-primary text-on-primary px-md py-xs rounded font-label-sm hover:brightness-110 transition-all">Join</button>
+</div>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-margin-desktop mt-xl pt-lg border-t border-outline-variant text-center">
+<p class="text-body-sm font-body-sm text-on-surface-variant">© 2024 FreshMart. All rights reserved.</p>
+</div>
+</footer>
+<script>
+    function incrementQty() {
+      const input = document.getElementById('quantity');
+      input.value = parseInt(input.value) + 1;
+    }
+    function decrementQty() {
+      const input = document.getElementById('quantity');
+      if (parseInt(input.value) > 1) {
+        input.value = parseInt(input.value) - 1;
+      }
+    }
+  </script>
+</body></html>

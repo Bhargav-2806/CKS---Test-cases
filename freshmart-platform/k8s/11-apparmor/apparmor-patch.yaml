@@ -1,0 +1,120 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — AppArmor securityContext patches
+# Phase 4.4 — System Hardening
+#
+# These are REFERENCE patches showing how AppArmor is applied in K8s 1.30+
+# via securityContext.appArmorProfile (replaces the old annotation method).
+#
+# To apply (requires AppArmor kernel support + profiles loaded on nodes):
+#   kubectl apply -f k8s/11-apparmor/apparmor-patch.yaml
+#
+# Profiles must be loaded on EVERY worker node before pods are scheduled.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── product-service ───────────────────────────────────────────────────────────
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: tesco-core
+spec:
+  template:
+    spec:
+      containers:
+        - name: product-service
+          securityContext:
+            # Phase 3 controls (existing)
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            # Phase 4.4: AppArmor profile (K8s 1.30+ syntax)
+            appArmorProfile:
+              type: Localhost
+              localhostProfile: freshmart-python-service
+
+# ── cart-service ──────────────────────────────────────────────────────────────
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: tesco-core
+spec:
+  template:
+    spec:
+      containers:
+        - name: cart-service
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            appArmorProfile:
+              type: Localhost
+              localhostProfile: freshmart-python-service
+
+# ── order-service ─────────────────────────────────────────────────────────────
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: tesco-core
+spec:
+  template:
+    spec:
+      containers:
+        - name: order-service
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            appArmorProfile:
+              type: Localhost
+              localhostProfile: freshmart-python-service
+
+# ── payment-service ───────────────────────────────────────────────────────────
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: tesco-payments
+spec:
+  template:
+    spec:
+      containers:
+        - name: payment-service
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            # Most restrictive profile — distroless Go binary
+            appArmorProfile:
+              type: Localhost
+              localhostProfile: freshmart-payment-service
+
+# ── frontend ──────────────────────────────────────────────────────────────────
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: tesco-frontend
+spec:
+  template:
+    spec:
+      containers:
+        - name: frontend
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            appArmorProfile:
+              type: Localhost
+              localhostProfile: freshmart-frontend

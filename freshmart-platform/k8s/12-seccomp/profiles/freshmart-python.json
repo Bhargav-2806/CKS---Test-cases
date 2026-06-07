@@ -1,0 +1,197 @@
+{
+  "_comment": "FreshMart custom seccomp — Python services (product, cart, order)",
+  "_runtime": "python:3.12-slim + uvicorn + psycopg2 + httpx",
+  "_phase": "4.5 CKS System Hardening",
+  "_compared_to_runtime_default": "Additionally blocks ptrace, process_vm_*, kexec, module loading with KILL_PROCESS",
+
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "architectures": ["SCMP_ARCH_X86_64", "SCMP_ARCH_X86", "SCMP_ARCH_X32"],
+
+  "syscalls": [
+    {
+      "_comment": "KILL immediately on the most dangerous syscalls — not just deny",
+      "names": [
+        "ptrace",
+        "process_vm_readv",
+        "process_vm_writev",
+        "kexec_load",
+        "kexec_file_load",
+        "init_module",
+        "finit_module",
+        "delete_module",
+        "reboot",
+        "acct"
+      ],
+      "action": "SCMP_ACT_KILL_PROCESS"
+    },
+    {
+      "_comment": "File I/O — what uvicorn + psycopg2 needs",
+      "names": [
+        "read", "write", "readv", "writev",
+        "pread64", "pwrite64", "preadv", "pwritev", "preadv2", "pwritev2",
+        "open", "openat", "openat2", "close",
+        "stat", "fstat", "lstat", "newfstatat", "statx",
+        "access", "faccessat", "faccessat2",
+        "getcwd", "chdir", "fchdir",
+        "mkdir", "mkdirat",
+        "rmdir",
+        "unlink", "unlinkat",
+        "rename", "renameat", "renameat2",
+        "readlink", "readlinkat",
+        "getdents64",
+        "truncate", "ftruncate",
+        "chmod", "fchmod", "fchmodat",
+        "chown", "fchown", "lchown", "fchownat",
+        "symlink", "symlinkat",
+        "link", "linkat",
+        "fsync", "fdatasync",
+        "lseek",
+        "sendfile",
+        "copy_file_range",
+        "splice", "tee",
+        "sync", "syncfs"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Memory management — Python runtime + asyncio event loop",
+      "names": [
+        "mmap", "munmap", "mprotect",
+        "madvise", "brk", "mremap",
+        "msync", "mincore",
+        "mlock", "munlock", "mlockall", "munlockall",
+        "memfd_create",
+        "getrandom"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Network — TCP for API server + PostgreSQL + inter-service HTTP",
+      "names": [
+        "socket", "socketpair",
+        "bind", "listen",
+        "accept", "accept4",
+        "connect", "shutdown",
+        "getsockname", "getpeername",
+        "setsockopt", "getsockopt",
+        "sendto", "sendmsg", "sendmmsg",
+        "recvfrom", "recvmsg", "recvmmsg"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "I/O multiplexing — asyncio/uvicorn event loop",
+      "names": [
+        "select", "pselect6",
+        "poll", "ppoll",
+        "epoll_create", "epoll_create1",
+        "epoll_ctl", "epoll_wait", "epoll_pwait", "epoll_pwait2",
+        "eventfd", "eventfd2",
+        "timerfd_create", "timerfd_settime", "timerfd_gettime",
+        "signalfd", "signalfd4",
+        "inotify_init1", "inotify_add_watch", "inotify_rm_watch"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Process management — uvicorn worker processes",
+      "names": [
+        "getpid", "getppid", "gettid",
+        "getuid", "getgid", "geteuid", "getegid",
+        "getgroups", "getpgrp", "getpgid",
+        "getsid", "setsid",
+        "exit", "exit_group",
+        "wait4", "waitid",
+        "clone", "clone3",
+        "fork", "vfork",
+        "execve", "execveat",
+        "set_tid_address",
+        "set_robust_list", "get_robust_list",
+        "capget",
+        "umask",
+        "prctl",
+        "arch_prctl",
+        "seccomp"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Signals",
+      "names": [
+        "rt_sigaction", "rt_sigprocmask",
+        "rt_sigreturn", "rt_sigsuspend",
+        "rt_sigpending", "rt_sigtimedwait",
+        "sigaltstack",
+        "kill", "tgkill", "tkill",
+        "pause"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Time",
+      "names": [
+        "clock_gettime", "clock_getres",
+        "clock_nanosleep",
+        "gettimeofday",
+        "nanosleep",
+        "time", "times"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "File descriptors + misc",
+      "names": [
+        "dup", "dup2", "dup3",
+        "pipe", "pipe2",
+        "fcntl", "ioctl",
+        "uname", "sysinfo",
+        "getrlimit", "setrlimit", "prlimit64",
+        "getrusage",
+        "futex", "futex_waitv",
+        "sched_yield", "sched_getaffinity",
+        "sched_getparam",
+        "landlock_create_ruleset",
+        "landlock_add_rule",
+        "landlock_restrict_self"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Commonly missing — added after startup failure diagnosis",
+      "names": [
+        "restart_syscall",
+        "sched_setscheduler",
+        "sched_getscheduler",
+        "sched_setparam",
+        "sched_rr_get_interval",
+        "getitimer", "setitimer",
+        "alarm",
+        "rt_tgsigqueueinfo",
+        "io_setup", "io_destroy", "io_getevents", "io_submit", "io_cancel",
+        "io_uring_setup", "io_uring_enter", "io_uring_register",
+        "getxattr", "lgetxattr", "fgetxattr",
+        "setxattr", "lsetxattr", "fsetxattr",
+        "listxattr", "llistxattr", "flistxattr",
+        "removexattr", "lremovexattr", "fremovexattr",
+        "userfaultfd",
+        "name_to_handle_at", "open_by_handle_at",
+        "setuid", "setgid",
+        "setresuid", "setresgid",
+        "setreuid", "setregid",
+        "setgroups",
+        "setfsuid", "setfsgid",
+        "capset",
+        "unshare",
+        "setns",
+        "perf_event_open",
+        "inotify_init",
+        "msgget", "msgsnd", "msgrcv", "msgctl",
+        "semget", "semop", "semctl",
+        "shmget", "shmctl", "shmat", "shmdt",
+        "mq_open", "mq_close", "mq_send", "mq_receive",
+        "mq_notify", "mq_getsetattr", "mq_unlink"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    }
+  ]
+}

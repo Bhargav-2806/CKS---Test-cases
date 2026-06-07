@@ -1,0 +1,151 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — Phase 4.3: RBAC Hardening
+# CKS Domain: Cluster Hardening (15%)
+# kube-bench: 5.1.5 + 5.1.6
+#
+# Problem: Every namespace gets a 'default' ServiceAccount automatically.
+# By default, automountServiceAccountToken is TRUE on the default SA.
+# Any pod that doesn't explicitly set serviceAccountName gets the default SA,
+# and gets a token mounted — even if it never needs K8s API access.
+#
+# Fix: Set automountServiceAccountToken: false on the default SA in EVERY
+# namespace so no pod accidentally inherits K8s API access.
+#
+# Note: Our custom SAs (product-service-sa, payment-service-sa, etc.) already
+# have automountServiceAccountToken: false from Phase 3 (01-rbac.yaml).
+# This file patches the default SAs we missed.
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+# tesco-core default SA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: tesco-core
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    rbac.phase: "4.3"
+automountServiceAccountToken: false
+
+---
+# tesco-payments default SA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: tesco-payments
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    rbac.phase: "4.3"
+automountServiceAccountToken: false
+
+---
+# tesco-frontend default SA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: tesco-frontend
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    rbac.phase: "4.3"
+automountServiceAccountToken: false
+
+---
+# tesco-data default SA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: tesco-data
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    rbac.phase: "4.3"
+automountServiceAccountToken: false
+
+---
+# tesco-messaging default SA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: tesco-messaging
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    rbac.phase: "4.3"
+automountServiceAccountToken: false
+
+---
+# tesco-monitoring default SA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: tesco-monitoring
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    rbac.phase: "4.3"
+automountServiceAccountToken: false
+
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# EXAMPLE Roles — for educational purposes only (not applied to FreshMart)
+#
+# FreshMart services do NOT need K8s API access — no Roles are bound to
+# product-service-sa, cart-service-sa, etc.
+#
+# If a future service DID need API access, this is the correct pattern:
+# ─────────────────────────────────────────────────────────────────────────────
+
+# EXAMPLE: A health-check sidecar that needs to list pods in its own namespace
+# Rule: minimum verbs, specific resources, NO wildcards, namespace-scoped
+#
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: Role
+# metadata:
+#   name: pod-reader
+#   namespace: tesco-core
+# rules:
+#   - apiGroups: [""]
+#     resources: ["pods"]
+#     verbs: ["get", "list", "watch"]   # read-only — no create/delete/patch
+#
+# ---
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: RoleBinding
+# metadata:
+#   name: pod-reader-binding
+#   namespace: tesco-core
+# subjects:
+#   - kind: ServiceAccount
+#     name: some-monitoring-sa      # explicit SA — never "default"
+#     namespace: tesco-core
+# roleRef:
+#   kind: Role
+#   name: pod-reader
+#   apiGroup: rbac.authorization.k8s.io
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ANTI-PATTERNS — never do these (CKS exam traps)
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# ❌ Wildcard resources:
+#   rules:
+#     - apiGroups: ["*"]
+#       resources: ["*"]
+#       verbs: ["*"]
+#
+# ❌ Binding to system:masters group:
+#   subjects:
+#     - kind: Group
+#       name: system:masters
+#
+# ❌ ClusterRoleBinding to cluster-admin for an app SA:
+#   roleRef:
+#     kind: ClusterRole
+#     name: cluster-admin
+#
+# ❌ Using default SA for workloads:
+#   spec:
+#     serviceAccountName: default   # never — always use a dedicated SA

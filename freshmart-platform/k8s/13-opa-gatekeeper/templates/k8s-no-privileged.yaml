@@ -1,0 +1,68 @@
+# =============================================================================
+# ConstraintTemplate: K8sNoPrivileged
+# Blocks containers from running in privileged mode.
+# CKS Domain: Minimize Microservice Vulnerabilities (20%)
+# =============================================================================
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8snoprivileged
+  annotations:
+    description: >
+      Reject pods where any container sets securityContext.privileged: true.
+      Privileged containers have full access to the host kernel — equivalent
+      to root on the node. This is a container escape vector.
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sNoPrivileged
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8snoprivileged
+
+        # ─── violations ───────────────────────────────────────────────────────
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.privileged == true
+          msg := sprintf(
+            "Container '%v' must not run in privileged mode. privileged: true grants full host kernel access (container escape risk).",
+            [container.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.initContainers[_]
+          container.securityContext.privileged == true
+          msg := sprintf(
+            "InitContainer '%v' must not run in privileged mode.",
+            [container.name]
+          )
+        }
+
+        # Also block hostPID and hostIPC — related privilege escalation vectors
+        violation[{"msg": msg}] {
+          input.review.object.spec.hostPID == true
+          msg := sprintf(
+            "Pod '%v' must not set hostPID: true. Sharing the host PID namespace exposes all host processes.",
+            [input.review.object.metadata.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          input.review.object.spec.hostIPC == true
+          msg := sprintf(
+            "Pod '%v' must not set hostIPC: true. Shared host IPC namespace enables inter-process attacks.",
+            [input.review.object.metadata.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          input.review.object.spec.hostNetwork == true
+          msg := sprintf(
+            "Pod '%v' must not set hostNetwork: true. Host network access bypasses all NetworkPolicies.",
+            [input.review.object.metadata.name]
+          )
+        }

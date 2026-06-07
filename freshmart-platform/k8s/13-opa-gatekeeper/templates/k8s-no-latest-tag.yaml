@@ -1,0 +1,67 @@
+# =============================================================================
+# ConstraintTemplate: K8sNoLatestTag
+# Blocks containers from using the :latest image tag or untagged images.
+# CKS Domain: Supply Chain Security (20%) — image provenance
+# =============================================================================
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8snolatesttag
+  annotations:
+    description: >
+      Reject pods whose containers reference an image with :latest tag or
+      with no tag at all (implicit :latest). Enforces explicit versioned
+      image references for reproducibility and supply chain traceability.
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sNoLatestTag
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8snolatesttag
+
+        # ─── helpers ──────────────────────────────────────────────────────────
+
+        # Extract image tag from a full image reference.
+        # e.g. "nginx:latest" → "latest"
+        #      "nginx"        → "" (no tag → implicit latest)
+        #      "repo/img:1.2" → "1.2"
+        image_tag(image) = tag {
+          parts := split(image, ":")
+          count(parts) >= 2
+          tag := parts[count(parts) - 1]
+        }
+        image_tag(image) = "" {
+          not contains(image, ":")
+        }
+
+        has_no_good_tag(image) {
+          tag := image_tag(image)
+          tag == "latest"
+        }
+        has_no_good_tag(image) {
+          tag := image_tag(image)
+          tag == ""
+        }
+
+        # ─── violations ───────────────────────────────────────────────────────
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          has_no_good_tag(container.image)
+          msg := sprintf(
+            "Container '%v' uses image '%v' with ':latest' or no tag. Pin to a specific version or digest (e.g. image:1.2.3).",
+            [container.name, container.image]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.initContainers[_]
+          has_no_good_tag(container.image)
+          msg := sprintf(
+            "InitContainer '%v' uses image '%v' with ':latest' or no tag. Pin to a specific version.",
+            [container.name, container.image]
+          )
+        }

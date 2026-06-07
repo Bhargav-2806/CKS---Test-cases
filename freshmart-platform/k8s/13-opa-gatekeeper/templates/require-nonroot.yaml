@@ -1,0 +1,58 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ConstraintTemplate: K8sRequireNonRoot
+# Enforces that all pods set runAsNonRoot: true at pod OR container level
+# CKS Domain: Minimize Microservice Vulnerabilities (20%)
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequirenonroot
+  annotations:
+    description: "Requires all containers to run as non-root user"
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequireNonRoot
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequirenonroot
+
+        violation[{"msg": msg}] {
+          # Check pod-level securityContext
+          not input.review.object.spec.securityContext.runAsNonRoot == true
+          not any_container_sets_nonroot
+          msg := sprintf(
+            "Pod '%v' must set runAsNonRoot: true in pod-level securityContext",
+            [input.review.object.metadata.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          # Check each container individually
+          container := input.review.object.spec.containers[_]
+          not input.review.object.spec.securityContext.runAsNonRoot == true
+          not container.securityContext.runAsNonRoot == true
+          msg := sprintf(
+            "Container '%v' must set runAsNonRoot: true (pod or container securityContext)",
+            [container.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          # Check initContainers
+          container := input.review.object.spec.initContainers[_]
+          not input.review.object.spec.securityContext.runAsNonRoot == true
+          not container.securityContext.runAsNonRoot == true
+          # Allow root initContainers in baseline namespaces (e.g. fix-permissions)
+          not input.review.object.metadata.annotations["seccomp.security.alpha.kubernetes.io/allow-root-init"] == "true"
+          msg := sprintf(
+            "InitContainer '%v' must set runAsNonRoot: true",
+            [container.name]
+          )
+        }
+
+        any_container_sets_nonroot {
+          input.review.object.spec.containers[_].securityContext.runAsNonRoot == true
+        }

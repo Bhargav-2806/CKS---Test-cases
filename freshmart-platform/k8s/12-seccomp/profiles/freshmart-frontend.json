@@ -1,0 +1,181 @@
+{
+  "_comment": "FreshMart custom seccomp — frontend (Next.js distroless)",
+  "_runtime": "gcr.io/distroless/nodejs20-debian12",
+  "_phase": "4.5 CKS System Hardening",
+
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "architectures": ["SCMP_ARCH_X86_64", "SCMP_ARCH_X86", "SCMP_ARCH_X32"],
+
+  "syscalls": [
+    {
+      "_comment": "KILL on most dangerous",
+      "names": [
+        "ptrace",
+        "process_vm_readv",
+        "process_vm_writev",
+        "kexec_load",
+        "kexec_file_load",
+        "init_module",
+        "finit_module",
+        "delete_module",
+        "reboot"
+      ],
+      "action": "SCMP_ACT_KILL_PROCESS"
+    },
+    {
+      "_comment": "File I/O — Node.js reads app files + node_modules",
+      "names": [
+        "read", "write", "readv", "writev",
+        "pread64", "pwrite64",
+        "open", "openat", "openat2", "close",
+        "stat", "fstat", "lstat", "newfstatat", "statx",
+        "access", "faccessat", "faccessat2",
+        "getcwd", "chdir",
+        "readlink", "readlinkat",
+        "getdents64",
+        "lseek",
+        "truncate", "ftruncate",
+        "mkdir", "mkdirat",
+        "unlink", "unlinkat",
+        "rename", "renameat2",
+        "symlink", "symlinkat",
+        "fsync",
+        "sendfile",
+        "copy_file_range"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Memory",
+      "names": [
+        "mmap", "munmap", "mprotect",
+        "madvise", "brk", "mremap",
+        "msync", "mincore",
+        "mlock", "munlock",
+        "memfd_create",
+        "getrandom"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Network — HTTP :3000 + calls to backend APIs",
+      "names": [
+        "socket", "socketpair",
+        "bind", "listen",
+        "accept", "accept4",
+        "connect", "shutdown",
+        "getsockname", "getpeername",
+        "setsockopt", "getsockopt",
+        "sendto", "sendmsg", "sendmmsg",
+        "recvfrom", "recvmsg", "recvmmsg"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "I/O multiplexing — libuv (Node.js event loop)",
+      "names": [
+        "select", "pselect6",
+        "poll", "ppoll",
+        "epoll_create", "epoll_create1",
+        "epoll_ctl", "epoll_wait", "epoll_pwait",
+        "eventfd", "eventfd2",
+        "timerfd_create", "timerfd_settime", "timerfd_gettime",
+        "inotify_init1", "inotify_add_watch", "inotify_rm_watch",
+        "pipe", "pipe2"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Process — Node.js worker threads",
+      "names": [
+        "getpid", "getppid", "gettid",
+        "getuid", "getgid", "geteuid", "getegid",
+        "getgroups",
+        "exit", "exit_group",
+        "clone", "clone3",
+        "fork", "vfork",
+        "execve",
+        "wait4", "waitid",
+        "set_tid_address",
+        "set_robust_list", "get_robust_list",
+        "capget",
+        "umask",
+        "prctl",
+        "arch_prctl",
+        "seccomp",
+        "setsid", "getpgrp"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Signals",
+      "names": [
+        "rt_sigaction", "rt_sigprocmask",
+        "rt_sigreturn", "rt_sigsuspend",
+        "rt_sigpending", "rt_sigtimedwait",
+        "sigaltstack",
+        "kill", "tgkill", "tkill",
+        "pause"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Time",
+      "names": [
+        "clock_gettime", "clock_getres",
+        "clock_nanosleep",
+        "gettimeofday",
+        "nanosleep",
+        "time", "times"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "File descriptors + misc",
+      "names": [
+        "dup", "dup2", "dup3",
+        "fcntl", "ioctl",
+        "uname", "sysinfo",
+        "getrlimit", "setrlimit", "prlimit64",
+        "getrusage",
+        "futex", "futex_waitv",
+        "sched_yield",
+        "sched_getaffinity",
+        "landlock_create_ruleset",
+        "landlock_add_rule",
+        "landlock_restrict_self"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "_comment": "Node.js extras — added after startup failure diagnosis",
+      "names": [
+        "restart_syscall",
+        "sched_setscheduler",
+        "sched_getscheduler",
+        "sched_setparam",
+        "sched_rr_get_interval",
+        "getitimer", "setitimer",
+        "alarm",
+        "rt_tgsigqueueinfo",
+        "io_uring_setup", "io_uring_enter", "io_uring_register",
+        "getxattr", "lgetxattr", "fgetxattr",
+        "setxattr", "lsetxattr", "fsetxattr",
+        "listxattr", "llistxattr", "flistxattr",
+        "removexattr", "lremovexattr", "fremovexattr",
+        "userfaultfd",
+        "name_to_handle_at", "open_by_handle_at",
+        "setuid", "setgid",
+        "setresuid", "setresgid",
+        "setreuid", "setregid",
+        "setgroups",
+        "capset",
+        "unshare",
+        "perf_event_open",
+        "inotify_init",
+        "msgget", "msgsnd", "msgrcv", "msgctl"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    }
+  ]
+}

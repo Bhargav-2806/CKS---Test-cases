@@ -1,0 +1,26 @@
+# =============================================================================
+# Constraint: freshmart-no-privileged
+# enforcementAction: deny — hard block
+#
+# Blocks privileged: true, hostPID: true, hostIPC: true, hostNetwork: true.
+# These all grant escalated access to the host kernel or process namespace —
+# the primary container escape techniques tested in the CKS exam.
+# =============================================================================
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sNoPrivileged
+metadata:
+  name: freshmart-no-privileged
+  annotations:
+    description: "Block privileged containers and host namespace sharing."
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    namespaces:
+      - tesco-core
+      - tesco-payments
+      - tesco-frontend
+      - tesco-data
+      - tesco-messaging

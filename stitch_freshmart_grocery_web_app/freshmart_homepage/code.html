@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FreshMart | Fresh Groceries Delivered Fast</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#313030",
+                    "on-primary-fixed-variant": "#0c5216",
+                    "tertiary-container": "#49554c",
+                    "on-tertiary-fixed-variant": "#3e4a41",
+                    "on-primary-fixed": "#002203",
+                    "surface-dim": "#dcd9d9",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed-variant": "#793100",
+                    "error": "#ba1a1a",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-secondary-fixed": "#341100",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed-dim": "#ffb691",
+                    "on-error-container": "#93000a",
+                    "on-surface": "#1c1b1b",
+                    "on-surface-variant": "#41493e",
+                    "on-tertiary-container": "#bcc9be",
+                    "primary-fixed-dim": "#91d78a",
+                    "surface-bright": "#fcf9f8",
+                    "outline-variant": "#c0c9bb",
+                    "on-background": "#1c1b1b",
+                    "on-tertiary": "#ffffff",
+                    "inverse-primary": "#91d78a",
+                    "tertiary": "#323e36",
+                    "surface-container-highest": "#e5e2e1",
+                    "surface": "#fcf9f8",
+                    "secondary-container": "#fb6d00",
+                    "primary": "#00450d",
+                    "surface-container": "#f0eded",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#562100",
+                    "surface-container-low": "#f6f3f2",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#131e17",
+                    "primary-container": "#1b5e20",
+                    "tertiary-fixed-dim": "#bdcabe",
+                    "background": "#fcf9f8",
+                    "surface-container-high": "#eae7e7",
+                    "secondary-fixed": "#ffdbcb",
+                    "surface-variant": "#e5e2e1",
+                    "outline": "#717a6d",
+                    "on-primary-container": "#90d689",
+                    "tertiary-fixed": "#d9e6da",
+                    "secondary": "#9e4200",
+                    "surface-tint": "#2a6b2c",
+                    "primary-fixed": "#acf4a4"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "8px",
+                    "xl": "12px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "md": "16px",
+                    "xxl": "48px",
+                    "margin-mobile": "16px",
+                    "container-max": "1280px",
+                    "margin-desktop": "32px",
+                    "gutter": "24px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .product-card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface-container-lowest dark:bg-surface-dim shadow-sm border-b border-outline-variant dark:border-outline">
+<div class="flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto">
+<div class="text-headline-md font-headline-md font-black text-primary dark:text-primary-fixed">FreshMart</div>
+<nav class="hidden md:flex items-center space-x-xl">
+<!-- Home is Active -->
+<a class="text-label-lg font-label-lg text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1 hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-transform duration-150" href="#">Home</a>
+<a class="text-label-lg font-label-lg text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-transform duration-150" href="#">Products</a>
+<a class="text-label-lg font-label-lg text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed transition-colors active:scale-95 transition-transform duration-150" href="#">Orders</a>
+</nav>
+<div class="flex items-center space-x-lg">
+<div class="relative cursor-pointer active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary" data-icon="shopping_cart">shopping_cart</span>
+<span class="absolute -top-2 -right-2 bg-secondary text-on-secondary text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+</div>
+<span class="material-symbols-outlined text-primary cursor-pointer active:scale-95 transition-transform" data-icon="person">person</span>
+</div>
+</div>
+</header>
+<main class="pt-16">
+<!-- Hero Banner -->
+<section class="relative w-full overflow-hidden bg-primary-container text-on-primary-container min-h-[400px] flex items-center">
+<!-- Subtle Mesh Gradient for depth -->
+<div class="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_50%,_#acf4a4_0%,_transparent_50%)]"></div>
+<div class="relative px-margin-desktop max-w-container-max mx-auto grid md:grid-cols-2 gap-xl items-center py-xxl">
+<div class="space-y-lg">
+<h1 class="font-display-lg text-display-lg text-on-primary-container leading-tight">Fresh groceries,<br/>delivered fast.</h1>
+<p class="font-body-lg text-body-lg text-primary-fixed-dim opacity-90 max-w-md">Quality local produce and household essentials at your doorstep within minutes. Experience the future of grocery shopping today.</p>
+<button class="bg-surface-container-lowest text-primary font-label-lg px-xl py-md rounded-lg shadow-sm hover:bg-primary-fixed transition-all active:scale-95 inline-flex items-center group">
+                        Shop Now
+                        <span class="material-symbols-outlined ml-sm text-[20px] group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="hidden md:block relative h-full">
+<img alt="Fresh Grocery Hero" class="rounded-xl shadow-2xl object-cover w-full h-[320px]" data-alt="A lush, high-resolution close-up of a rustic wooden crate overflowing with vibrant, dewy fresh vegetables including bright red tomatoes, crisp green kale, and orange carrots. The lighting is warm and natural, creating a premium farm-to-table atmosphere that emphasizes freshness and health. The background is a soft-focus clean kitchen environment, maintaining the brand's corporate and modern reliability aesthetic. Deep greens and earthy tones dominate the palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH_UhwcCj0Gr-OrvM9hhMAeSu72lBbGygf5zg3loe_rSXA__5BxnibUHbFpK8ceydPGJdRU9kHmMtGqUOezIgguTIaTA9YCoC0qOHdXijHuDfYpc5X6wGbeNxJVz-nR75V95ZrY7-TV163LrhLoqct_F0x_WPnB_IY2BJx8ajJ2ZS_B_62gBnQxF63kWndUJgs7EDHSMkf_-2DpkCfaX9Di225lKcdTMlMjxI-ScsHHdpeXQrgzstIhVNCR7em6QFrDj254MxM7XF5"/>
+</div>
+</div>
+</section>
+<!-- Main Product Grid Section -->
+<section class="px-margin-desktop max-w-container-max mx-auto py-xxl">
+<div class="flex items-center justify-between mb-xl">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Weekly Freshness</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Hand-picked selection of our top quality produce.</p>
+</div>
+<div class="flex space-x-sm">
+<button class="p-sm rounded-full border border-outline-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-outline" data-icon="filter_list">filter_list</span>
+</button>
+<button class="p-sm rounded-full border border-outline-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-outline" data-icon="sort">sort</span>
+</button>
+</div>
+</div>
+<!-- Grid: 3 columns, 4 rows = 12 items -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Product Card Component -->
+<script>
+                    const products = [
+                        { name: "Organic Bananas", price: "£1.50", category: "Fruit", img: "https://images.unsplash.com/photo-1603833665858-e61d17a86224?auto=format&fit=crop&w=400&q=80", alt: "A bright bunch of organic yellow bananas sitting on a clean, white marble surface. The lighting is soft and high-key, emphasizing the smooth texture and vibrant yellow color of the fruit. Minimalist aesthetic with high-quality whites and soft shadows." },
+                        { name: "Whole Milk (2L)", price: "£2.10", category: "Dairy", img: "https://images.unsplash.com/photo-1550583724-1255818c053b?auto=format&fit=crop&w=400&q=80", alt: "A cold, glass bottle of fresh whole milk with condensation droplets, placed in a bright, modern refrigerator setting. The lighting is crisp and cool, reflecting a sterile and fresh retail environment. Soft grays and clean whites dominate the composition." },
+                        { name: "Sourdough Bread", price: "£3.20", category: "Bakery", img: "https://images.unsplash.com/photo-1585478259715-876acc5be8eb?auto=format&fit=crop&w=400&q=80", alt: "A crusty, artisanal sourdough loaf with a beautiful flour-dusted golden crust, sliced to show the airy interior. The scene is warm and inviting, lit with soft afternoon sunlight in a minimalist bakery. Earthy browns and clean neutral backgrounds." },
+                        { name: "Avocados (2pk)", price: "£2.50", category: "Fruit", img: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=400&q=80", alt: "Two perfectly ripe, halved avocados showing their creamy green interior and dark skin. Positioned on a minimalist gray textured plate under studio lighting. The palette is a mix of vibrant greens and sophisticated neutrals." },
+                        { name: "Vine Tomatoes", price: "£1.80", category: "Vegetables", img: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80", alt: "A cluster of vibrant red vine-ripened tomatoes still attached to their green stems. High-contrast lighting highlights the glossy surface and rich color against a white minimalist backdrop. Evokes health, freshness, and high quality." },
+                        { name: "Greek Yogurt", price: "£1.95", category: "Dairy", img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=400&q=80", alt: "A clean white ceramic bowl filled with thick, creamy Greek yogurt, topped with a single mint leaf. The lighting is bright and airy, emphasizing the pure white texture. A corporate modern food photography style." },
+                        { name: "Spinach (200g)", price: "£1.20", category: "Vegetables", img: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=400&q=80", alt: "A fresh heap of vibrant, deep green spinach leaves in a simple wooden bowl. Soft overhead lighting brings out the texture of the leaves. The color palette is focused on healthy primary greens and soft natural woods." },
+                        { name: "Pink Lady Apples", price: "£2.00", category: "Fruit", img: "https://images.unsplash.com/photo-1560806887-1e480c8ca0ff?auto=format&fit=crop&w=400&q=80", alt: "A group of crisp, pink and red apples arranged neatly. The lighting is diffused and professional, creating a clean retail look. High clarity and focus on the natural fruit texture." },
+                        { name: "Fresh Strawberries", price: "£2.80", category: "Fruit", img: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=400&q=80", alt: "A punnet of bright red, juicy strawberries with green caps. Soft, high-key lighting creates a fresh and appetizing mood. The style is modern, focusing on product vibrancy and health." },
+                        { name: "Free Range Eggs", price: "£2.40", category: "Dairy", img: "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=400&q=80", alt: "A carton of brown free-range eggs on a clean kitchen counter. The lighting is natural and bright, highlighting the organic texture of the eggshells. Consistent with a premium supermarket aesthetic." },
+                        { name: "Red Bell Pepper", price: "£0.80", category: "Vegetables", img: "https://images.unsplash.com/photo-1563513130-18458788448d?auto=format&fit=crop&w=400&q=80", alt: "A single, glossy red bell pepper on a white background. High-key studio lighting emphasizes the curves and shine of the vegetable. Clean, retail-focused visual." },
+                        { name: "Unsalted Butter", price: "£1.75", category: "Dairy", img: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=400&q=80", alt: "A block of fresh butter wrapped in gold foil, placed on a white surface next to a butter knife. Warm, inviting lighting reflects a high-quality grocery experience. Minimalist and professional." }
+                    ];
+
+                    products.forEach(product => {
+                        document.write(`
+                            <div class="product-card-hover bg-surface-container-lowest border border-outline-variant rounded-lg p-md transition-all duration-300 flex flex-col h-full group">
+                                <div class="relative overflow-hidden rounded-lg mb-md aspect-square bg-surface-container">
+                                    <img src="${product.img}" 
+                                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                         alt="${product.name}" 
+                                         data-alt="${product.alt}">
+                                    <span class="absolute top-2 left-2 bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">${product.category}</span>
+                                </div>
+                                <div class="flex-grow">
+                                    <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">${product.name}</h3>
+                                    <p class="text-primary font-bold text-lg">${product.price}</p>
+                                </div>
+                                <button class="mt-md w-full bg-primary text-on-primary font-label-lg py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-primary-container transition-colors active:scale-95">
+                                    <span class="material-symbols-outlined text-[18px]" data-icon="add_shopping_cart">add_shopping_cart</span>
+                                    Add to Cart
+                                </button>
+                            </div>
+                        `);
+                    });
+                </script>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-surface-container-highest w-full py-xxl mt-xxl border-t border-outline-variant">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop max-w-container-max mx-auto">
+<div class="space-y-md">
+<div class="text-headline-sm font-headline-sm font-bold text-primary">FreshMart</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant max-w-[200px]">Bringing the freshest produce directly from local farms to your kitchen.</p>
+</div>
+<div class="space-y-md">
+<h4 class="font-label-lg text-on-surface">Company</h4>
+<div class="flex flex-col space-y-sm">
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">About Us</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Careers</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Sustainability</a>
+</div>
+</div>
+<div class="space-y-md">
+<h4 class="font-label-lg text-on-surface">Support</h4>
+<div class="flex flex-col space-y-sm">
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Contact Us</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">FAQs</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Delivery Info</a>
+</div>
+</div>
+<div class="space-y-md">
+<h4 class="font-label-lg text-on-surface">Legal</h4>
+<div class="flex flex-col space-y-sm">
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Privacy Policy</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Terms of Service</a>
+</div>
+</div>
+</div>
+<div class="px-margin-desktop max-w-container-max mx-auto mt-xl pt-lg border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-md">
+<p class="text-label-sm font-label-sm text-on-surface-variant">© 2024 FreshMart. All rights reserved.</p>
+<div class="flex space-x-lg">
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors" data-icon="facebook">social_leaderboard</span>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors" data-icon="instagram">retweet</span>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors" data-icon="twitter">retweet</span>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction for Cart Badge
+        const buttons = document.querySelectorAll('button');
+        const badge = document.querySelector('.relative .bg-secondary');
+        
+        buttons.forEach(btn => {
+            if (btn.innerText.includes('Add to Cart')) {
+                btn.addEventListener('click', () => {
+                    const currentCount = parseInt(badge.innerText);
+                    badge.innerText = currentCount + 1;
+                    
+                    // Simple animation for the badge
+                    badge.classList.remove('scale-100');
+                    badge.classList.add('scale-125', 'bg-primary');
+                    setTimeout(() => {
+                        badge.classList.remove('scale-125', 'bg-primary');
+                        badge.classList.add('scale-100');
+                    }, 200);
+                });
+            }
+        });
+    </script>
+</body></html>

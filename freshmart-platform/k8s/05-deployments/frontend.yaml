@@ -1,0 +1,107 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — frontend Deployment + Service
+# Namespace: tesco-frontend   PSA: baseline
+# Image:     freshmart/frontend:latest  (Next.js standalone, distroless Node)
+#
+# NEXT_PUBLIC_* vars are baked into the image at build time (setup.sh).
+# They point to http://localhost (the Kind ingress — port 80 on host).
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: tesco-frontend
+  labels:
+    app: frontend
+    app.kubernetes.io/part-of: freshmart
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        app.kubernetes.io/part-of: freshmart
+    spec:
+      serviceAccountName: frontend-sa
+      automountServiceAccountToken: false
+
+      # distroless/nodejs nonroot = uid 65532
+      securityContext:
+        runAsNonRoot: true
+        runAsUser:    65532
+        runAsGroup:   65532
+        fsGroup:      65532
+        # Good practice even on baseline PSA — explicit intent
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: frontend
+          image: freshmart/frontend:latest
+          imagePullPolicy: Never
+
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3000"
+            - name: HOSTNAME
+              value: "0.0.0.0"
+
+          resources:
+            requests:
+              cpu:    "100m"
+              memory: "128Mi"
+            limits:
+              cpu:    "500m"
+              memory: "512Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: tesco-frontend
+  labels:
+    app: frontend
+    app.kubernetes.io/part-of: freshmart
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP

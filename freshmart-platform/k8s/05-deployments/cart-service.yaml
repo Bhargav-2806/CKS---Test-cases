@@ -1,0 +1,109 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — cart-service Deployment + Service
+# Namespace: tesco-core   PSA: restricted
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: tesco-core
+  labels:
+    app: cart-service
+    app.kubernetes.io/part-of: freshmart
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cart-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: cart-service
+        app.kubernetes.io/part-of: freshmart
+    spec:
+      serviceAccountName: cart-service-sa
+      automountServiceAccountToken: false
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser:    10001
+        runAsGroup:   10001
+        fsGroup:      10001
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: cart-service
+          image: freshmart/cart-service:latest
+          imagePullPolicy: Never
+
+          ports:
+            - name: http
+              containerPort: 8002
+              protocol: TCP
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem:   false
+            capabilities:
+              drop: ["ALL"]
+
+          envFrom:
+            - configMapRef:
+                name: cart-service-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key:  DATABASE_URL
+
+          resources:
+            requests:
+              cpu:    "50m"
+              memory: "128Mi"
+            limits:
+              cpu:    "200m"
+              memory: "256Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-service
+  namespace: tesco-core
+  labels:
+    app: cart-service
+    app.kubernetes.io/part-of: freshmart
+spec:
+  type: ClusterIP
+  selector:
+    app: cart-service
+  ports:
+    - name: http
+      port: 8002
+      targetPort: 8002
+      protocol: TCP

@@ -1,0 +1,65 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — ConfigMaps (non-sensitive app configuration)
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+# product-service app config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: product-service-config
+  namespace: tesco-core
+  labels:
+    app: product-service
+    app.kubernetes.io/part-of: freshmart
+data:
+  PORT:  "8001"
+  DEBUG: "false"
+
+---
+# cart-service app config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart-service-config
+  namespace: tesco-core
+  labels:
+    app: cart-service
+    app.kubernetes.io/part-of: freshmart
+data:
+  PORT:                "8002"
+  DEBUG:               "false"
+  PRODUCT_SERVICE_URL: "http://product-service.tesco-core.svc.cluster.local:8001"
+
+---
+# order-service app config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+  namespace: tesco-core
+  labels:
+    app: order-service
+    app.kubernetes.io/part-of: freshmart
+data:
+  PORT:                  "8003"
+  DEBUG:                 "false"
+  CART_SERVICE_URL:      "http://cart-service.tesco-core.svc.cluster.local:8002"
+  PAYMENT_SERVICE_URL:   "http://payment-service.tesco-payments.svc.cluster.local:8004"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-0.kafka-headless.tesco-messaging.svc.cluster.local:9092"
+  KAFKA_ENABLED:         "false"   # set "true" once Kafka is verified running
+
+---
+# payment-service app config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-service-config
+  namespace: tesco-payments
+  labels:
+    app: payment-service
+    app.kubernetes.io/part-of: freshmart
+data:
+  PORT:                    "8004"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-0.kafka-headless.tesco-messaging.svc.cluster.local:9092"
+  KAFKA_ENABLED:           "false"   # set "true" once Kafka is verified running

@@ -1,0 +1,29 @@
+# =============================================================================
+# Constraint: freshmart-require-nonroot
+# enforcementAction: deny — hard block
+#
+# All containers must declare runAsNonRoot: true.
+# Pairs with the K8sRequireNonRoot ConstraintTemplate (require-nonroot.yaml).
+#
+# NOTE on initContainers: Our PostgreSQL StatefulSet uses an initContainer
+# running as root to fix PVC directory permissions (chown). This initContainer
+# is annotated with "seccomp.security.alpha.kubernetes.io/allow-root-init: true"
+# so the template exempts it. All app containers (product, cart, order, payment,
+# frontend) use uid 10001 or 65532 — no exemption needed.
+# =============================================================================
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequireNonRoot
+metadata:
+  name: freshmart-require-nonroot
+  annotations:
+    description: "All containers must run as non-root (runAsNonRoot: true)."
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    namespaces:
+      - tesco-core
+      - tesco-payments
+      - tesco-frontend

@@ -1,0 +1,36 @@
+# =============================================================================
+# Constraint: freshmart-allowed-repos
+# enforcementAction: deny — hard block
+#
+# Allowed registries for FreshMart production namespaces:
+#   freshmart/          — our app images (loaded into Kind locally)
+#   gcr.io/distroless/  — distroless runtime images (payment-service, frontend)
+#   postgres:           — official PostgreSQL (tesco-data)
+#   aquasec/kube-bench  — security scanning (runs in default namespace)
+#
+# Any other image reference (e.g. nginx:latest from DockerHub, malicious/image)
+# will be rejected at admission — the pod will NOT be created.
+# =============================================================================
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sAllowedRepos
+metadata:
+  name: freshmart-allowed-repos
+  annotations:
+    description: "Only whitelisted image registries are allowed in application namespaces."
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    namespaces:
+      - tesco-core
+      - tesco-payments
+      - tesco-frontend
+  parameters:
+    repos:
+      - "freshmart/"            # Our FreshMart app images
+      - "gcr.io/distroless/"    # Google distroless runtime images
+      - "docker.io/library/"    # Official Docker Hub library images (postgres, etc.)
+      - "postgres:"             # postgres:16-alpine style references
+      - "node:"                 # node:20-alpine style references

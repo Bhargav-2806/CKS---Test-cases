@@ -1,0 +1,26 @@
+# =============================================================================
+# Constraint: freshmart-require-seccomp
+# enforcementAction: deny — hard block
+#
+# All pods in application namespaces must declare a seccomp profile.
+# Our existing deployments all use seccompProfile: {type: RuntimeDefault},
+# set in Phase 3. This constraint prevents any future deployment from
+# removing or disabling seccomp filtering.
+# =============================================================================
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequireSeccomp
+metadata:
+  name: freshmart-require-seccomp
+  annotations:
+    description: "All pods must have a seccomp profile. Unconfined is rejected."
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    namespaces:
+      - tesco-core
+      - tesco-payments
+      - tesco-frontend
+      - tesco-data

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Your Cart - FreshMart</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#313030",
+                    "on-primary-fixed-variant": "#0c5216",
+                    "tertiary-container": "#49554c",
+                    "on-tertiary-fixed-variant": "#3e4a41",
+                    "on-primary-fixed": "#002203",
+                    "surface-dim": "#dcd9d9",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed-variant": "#793100",
+                    "error": "#ba1a1a",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-secondary-fixed": "#341100",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed-dim": "#ffb691",
+                    "on-error-container": "#93000a",
+                    "on-surface": "#1c1b1b",
+                    "on-surface-variant": "#41493e",
+                    "on-tertiary-container": "#bcc9be",
+                    "primary-fixed-dim": "#91d78a",
+                    "surface-bright": "#fcf9f8",
+                    "outline-variant": "#c0c9bb",
+                    "on-background": "#1c1b1b",
+                    "on-tertiary": "#ffffff",
+                    "inverse-primary": "#91d78a",
+                    "tertiary": "#323e36",
+                    "surface-container-highest": "#e5e2e1",
+                    "surface": "#fcf9f8",
+                    "secondary-container": "#fb6d00",
+                    "primary": "#00450d",
+                    "surface-container": "#f0eded",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#562100",
+                    "surface-container-low": "#f6f3f2",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#131e17",
+                    "primary-container": "#1b5e20",
+                    "tertiary-fixed-dim": "#bdcabe",
+                    "background": "#fcf9f8",
+                    "surface-container-high": "#eae7e7",
+                    "secondary-fixed": "#ffdbcb",
+                    "surface-variant": "#e5e2e1",
+                    "outline": "#717a6d",
+                    "on-primary-container": "#90d689",
+                    "tertiary-fixed": "#d9e6da",
+                    "secondary": "#9e4200",
+                    "surface-tint": "#2a6b2c",
+                    "primary-fixed": "#acf4a4"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "md": "16px",
+                    "xxl": "48px",
+                    "margin-mobile": "16px",
+                    "container-max": "1280px",
+                    "margin-desktop": "32px",
+                    "gutter": "24px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fcf9f8;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface-container-lowest dark:bg-surface-dim shadow-sm border-b border-outline-variant dark:border-outline h-16">
+<div class="flex justify-between items-center h-full px-margin-desktop max-w-container-max mx-auto">
+<div class="text-headline-md font-headline-md font-black text-primary dark:text-primary-fixed">FreshMart</div>
+<nav class="hidden md:flex items-center gap-xl">
+<a class="text-label-lg font-label-lg text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Home</a>
+<a class="text-label-lg font-label-lg text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Products</a>
+<a class="text-label-lg font-label-lg text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">Orders</a>
+</nav>
+<div class="flex items-center gap-lg">
+<button class="flex items-center text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1 active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<button class="text-on-surface-variant dark:text-on-tertiary-container hover:text-primary dark:hover:text-primary-fixed active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-xxl px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<h1 class="font-headline-lg text-headline-lg mb-xl">Your Cart</h1>
+<div class="flex flex-col lg:flex-row gap-gutter">
+<!-- Left Column: List of Items (70%) -->
+<div class="lg:w-[70%]">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<div class="p-md md:p-lg space-y-lg">
+<!-- Cart Item 1 -->
+<div class="flex items-center gap-md py-md border-b border-outline-variant last:border-0 group">
+<div class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Organic Avocados" class="w-full h-full object-cover" data-alt="A macro shot of vibrant green, ripe organic avocados halved with the stone visible, set against a clean minimalist kitchen background. The lighting is soft and natural, emphasizing the creamy texture and rich colors of the fresh produce, fitting a premium corporate grocery aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFv7SF-_PG5iTx4DTpvdia--9-6Xmo5P45JxWRr6G9q1T9_lTT6IcAmsHDyjVYo0C6Oif7BU1mpKuMFIzE6qqiaCLCVFb4d53bobpppmocaJI85tBxxdQhJ7VICm2wziuuaR0pNXfx6YQIUUMavIqRrWFXMVTf_N_K2wLj-Vh3XShw_sBk5cQPkIDM9Hi-gS3iUshME60Qm6raFn0c6ORO2dDvwONKJp1hC0_smoatCVMDbA7I9ZsXUvdDlfYjvEX3vOOVXIHyMwzE"/>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 items-center gap-sm">
+<div class="col-span-2 md:col-span-1">
+<h3 class="font-label-lg text-label-lg text-on-surface">Organic Avocados</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">£2.00 per unit</p>
+</div>
+<div class="flex items-center gap-sm justify-center md:justify-start">
+<button class="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<span class="font-label-lg text-label-lg w-4 text-center">2</span>
+<button class="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+<div class="text-right md:text-left">
+<p class="font-label-lg text-label-lg text-on-surface">£4.00</p>
+</div>
+<div class="flex justify-end">
+<button class="text-on-surface-variant hover:text-error transition-colors p-sm">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Cart Item 2 -->
+<div class="flex items-center gap-md py-md border-b border-outline-variant last:border-0">
+<div class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Vine Tomatoes" class="w-full h-full object-cover" data-alt="A beautiful bunch of fresh red and yellow cherry tomatoes still on the vine, glistening with tiny water droplets in a brightly lit studio environment. The composition is clean and modern, highlighting the freshness and organic quality of the retail products with high-key lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-cOAkCjHiLSIQYlaTdtZLrQ-rQIYpMRlt9llLMLGQhbyk3rKFrpHlEy7YVfh8rQxvZZBD2iyH_uFWoCN1QwXZ6N-mFDIyVsOFX2iRqGLWiU2HWB29UG-38ToLBDDqw3C8W8k2d6DuW7nc2Jhr7sxzYw0l-xyEQrZEg8NHk0PA7UUqTCucIpfenEp7-C8ZZu4QRjccfjBjZgybcLWDrQmVk1TtEjJOZyER0qrfpmskuMsGSlKhyS890m5uJU7mfjoYctDDXL1HiWw5"/>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 items-center gap-sm">
+<div class="col-span-2 md:col-span-1">
+<h3 class="font-label-lg text-label-lg text-on-surface">Vine Tomatoes</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">£3.50 per pack</p>
+</div>
+<div class="flex items-center gap-sm justify-center md:justify-start">
+<button class="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<span class="font-label-lg text-label-lg w-4 text-center">3</span>
+<button class="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+<div class="text-right md:text-left">
+<p class="font-label-lg text-label-lg text-on-surface">£10.50</p>
+</div>
+<div class="flex justify-end">
+<button class="text-on-surface-variant hover:text-error transition-colors p-sm">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Cart Item 3 -->
+<div class="flex items-center gap-md py-md border-b border-outline-variant last:border-0">
+<div class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Artisan Bread" class="w-full h-full object-cover" data-alt="A crusty artisan sourdough bread loaf sitting on a clean white marble surface with a dusting of flour. The lighting is warm and directional, creating soft shadows that emphasize the texture and golden crust, reflecting a premium bakery section in a modern grocery store." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBC5VB5aIbmyprQCmK_NpNWyVI2GLThFaQmcpYnVkAqtPUeiOkDQ-f3tsDMatm-LbHD1ANNCCJ868EAcfI4AS8mST761XnAKSZjwwgsM73Nr7QqqNjhJMHVKvrcLO1kvGuAn90pU-IXIIQr6k9wjtj1Ycr0YkOC89wN115S21BmVIg2iqATovXy9TeNYm-Uoq41Jqp8eF6jNAB-qXy2_sQyKlH4vwcAQbrKT1xBngCq1dTL5yQgNqfWZ5HSP1AyTq8z_cP1rI3d8iap"/>
+</div>
+<div class="flex-grow grid grid-cols-2 md:grid-cols-4 items-center gap-sm">
+<div class="col-span-2 md:col-span-1">
+<h3 class="font-label-lg text-label-lg text-on-surface">Artisan Bread</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">£1.00 per loaf</p>
+</div>
+<div class="flex items-center gap-sm justify-center md:justify-start">
+<button class="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<span class="font-label-lg text-label-lg w-4 text-center">1</span>
+<button class="w-8 h-8 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+<div class="text-right md:text-left">
+<p class="font-label-lg text-label-lg text-on-surface">£1.00</p>
+</div>
+<div class="flex justify-end">
+<button class="text-on-surface-variant hover:text-error transition-colors p-sm">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low p-md md:p-lg border-t border-outline-variant flex justify-between items-center">
+<span class="font-label-lg text-label-lg text-on-surface-variant">Subtotal</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">£15.50</span>
+</div>
+</div>
+<div class="mt-lg flex items-center gap-sm text-primary cursor-pointer hover:underline transition-all">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="font-label-lg text-label-lg">Continue Shopping</span>
+</div>
+</div>
+<!-- Right Column: Order Summary Card (30%) -->
+<aside class="lg:w-[30%]">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm p-md md:p-lg sticky top-24">
+<h2 class="font-headline-sm text-headline-sm mb-lg text-on-surface">Order Summary</h2>
+<div class="space-y-md mb-xl">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="font-body-md text-body-md">Subtotal</span>
+<span class="font-body-md text-body-md">£15.50</span>
+</div>
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="font-body-md text-body-md">Delivery fee</span>
+<span class="font-body-md text-body-md">£3.99</span>
+</div>
+<div class="pt-md border-t border-outline-variant flex justify-between items-center">
+<span class="font-label-lg text-label-lg text-on-surface">Total</span>
+<span class="font-headline-md text-headline-md text-on-surface font-bold">£19.49</span>
+</div>
+</div>
+<button class="w-full py-md bg-primary hover:bg-on-primary-fixed-variant text-on-primary rounded-lg font-label-lg text-label-lg transition-colors flex items-center justify-center gap-sm active:scale-95 duration-150">
+                        Proceed to Checkout
+                        <span class="material-symbols-outlined">chevron_right</span>
+</button>
+<div class="mt-xl p-md bg-primary-fixed/30 rounded-lg flex items-start gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">eco</span>
+<div class="font-body-sm text-body-sm text-on-primary-fixed-variant">
+                            This order qualifies for <span class="font-bold">Plastic-Free</span> packaging.
+                        </div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-surface-container-highest mt-xxl py-xxl w-full">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop max-w-container-max mx-auto">
+<div class="col-span-1 md:col-span-1">
+<div class="text-headline-sm font-headline-sm font-bold text-primary mb-md">FreshMart</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mb-md">Fresh produce delivered to your doorstep with care and efficiency.</p>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="font-label-lg text-label-lg text-on-surface mb-sm">Shop</span>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Fruit &amp; Veg</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Dairy &amp; Bakery</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Pantry Essentials</a>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="font-label-lg text-label-lg text-on-surface mb-sm">Company</span>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">About Us</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Contact Us</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Careers</a>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="font-label-lg text-label-lg text-on-surface mb-sm">Support</span>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Privacy Policy</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Terms of Service</a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">FAQs</a>
+</div>
+</div>
+<div class="mt-xl pt-lg border-t border-outline-variant max-w-container-max mx-auto px-margin-desktop text-center">
+<p class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline">© 2024 FreshMart. All rights reserved.</p>
+</div>
+</footer>
+<script>
+        // Micro-interactions
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const ripple = document.createElement('span');
+                ripple.style.position = 'absolute';
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                ripple.style.width = '0';
+                ripple.style.height = '0';
+                ripple.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                ripple.style.borderRadius = '50%';
+                ripple.style.transform = 'translate(-50%, -50%)';
+                ripple.style.transition = 'width 0.6s ease-out, height 0.6s ease-out, opacity 0.6s ease-out';
+                ripple.style.pointerEvents = 'none';
+                
+                this.style.overflow = 'hidden';
+                this.style.position = 'relative';
+                this.appendChild(ripple);
+                
+                requestAnimationFrame(() => {
+                    ripple.style.width = '300px';
+                    ripple.style.height = '300px';
+                    ripple.style.opacity = '0';
+                });
+                
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+    </script>
+</body></html>

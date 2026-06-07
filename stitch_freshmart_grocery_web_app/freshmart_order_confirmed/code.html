@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Confirmation - FreshMart</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#313030",
+                    "on-primary-fixed-variant": "#0c5216",
+                    "tertiary-container": "#49554c",
+                    "on-tertiary-fixed-variant": "#3e4a41",
+                    "on-primary-fixed": "#002203",
+                    "surface-dim": "#dcd9d9",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed-variant": "#793100",
+                    "error": "#ba1a1a",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-secondary-fixed": "#341100",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed-dim": "#ffb691",
+                    "on-error-container": "#93000a",
+                    "on-surface": "#1c1b1b",
+                    "on-surface-variant": "#41493e",
+                    "on-tertiary-container": "#bcc9be",
+                    "primary-fixed-dim": "#91d78a",
+                    "surface-bright": "#fcf9f8",
+                    "outline-variant": "#c0c9bb",
+                    "on-background": "#1c1b1b",
+                    "on-tertiary": "#ffffff",
+                    "inverse-primary": "#91d78a",
+                    "tertiary": "#323e36",
+                    "surface-container-highest": "#e5e2e1",
+                    "surface": "#fcf9f8",
+                    "secondary-container": "#fb6d00",
+                    "primary": "#00450d",
+                    "surface-container": "#f0eded",
+                    "on-error": "#ffffff",
+                    "on-secondary-container": "#562100",
+                    "surface-container-low": "#f6f3f2",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#131e17",
+                    "primary-container": "#1b5e20",
+                    "tertiary-fixed-dim": "#bdcabe",
+                    "background": "#fcf9f8",
+                    "surface-container-high": "#eae7e7",
+                    "secondary-fixed": "#ffdbcb",
+                    "surface-variant": "#e5e2e1",
+                    "outline": "#717a6d",
+                    "on-primary-container": "#90d689",
+                    "tertiary-fixed": "#d9e6da",
+                    "secondary": "#9e4200",
+                    "surface-tint": "#2a6b2c",
+                    "primary-fixed": "#acf4a4"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "md": "16px",
+                    "xxl": "48px",
+                    "margin-mobile": "16px",
+                    "container-max": "1280px",
+                    "margin-desktop": "32px",
+                    "gutter": "24px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .success-checkmark-bounce {
+            animation: bounce 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes bounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background selection:bg-primary-fixed-dim">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface-container-lowest shadow-sm border-b border-outline-variant">
+<div class="flex justify-between items-center h-16 px-margin-desktop max-w-container-max mx-auto">
+<div class="text-headline-md font-headline-md font-black text-primary">FreshMart</div>
+<nav class="hidden md:flex items-center gap-xl">
+<a class="text-label-lg font-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-label-lg font-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Products</a>
+<a class="text-label-lg font-label-lg text-primary border-b-2 border-primary pb-1" href="#">Orders</a>
+</nav>
+<div class="flex items-center gap-lg">
+<button class="material-symbols-outlined text-primary hover:scale-95 transition-transform" data-icon="shopping_cart">shopping_cart</button>
+<button class="material-symbols-outlined text-primary hover:scale-95 transition-transform" data-icon="person">person</button>
+</div>
+</div>
+</header>
+<main class="pt-32 pb-xxl px-margin-mobile md:px-margin-desktop max-w-[800px] mx-auto">
+<!-- Success Identity Section -->
+<section class="text-center mb-xl">
+<div class="inline-flex items-center justify-center w-24 h-24 bg-primary-container text-on-primary-container rounded-full mb-lg success-checkmark-bounce">
+<span class="material-symbols-outlined !text-[48px]" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-sm">Order Placed!</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[500px] mx-auto">
+                Your order is confirmed and will be delivered within 2-3 days.
+            </p>
+<div class="mt-md px-lg py-sm bg-surface-container-high inline-block rounded-lg border border-outline-variant">
+<span class="font-label-lg text-on-surface">Order ID: <span class="text-primary font-bold">#TM-20240603-001</span></span>
+</div>
+</section>
+<!-- Order Detail Canvas -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant overflow-hidden">
+<div class="p-lg bg-surface-container-low border-b border-outline-variant">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Order Summary</h2>
+</div>
+<div class="p-lg">
+<table class="w-full border-collapse">
+<thead>
+<tr class="border-b border-outline-variant">
+<th class="text-left py-md font-label-lg text-on-surface-variant">Item name</th>
+<th class="text-center py-md font-label-lg text-on-surface-variant">Qty</th>
+<th class="text-right py-md font-label-lg text-on-surface-variant">Price</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
+<img alt="Product" class="w-full h-full object-cover" data-alt="A macro photograph of organic, ripe vine-ripened tomatoes and fresh green bell peppers sitting in a clean, white minimalist retail kitchen setting. The lighting is high-key and airy, creating a professional grocery store aesthetic. The focus is sharp on the texture of the vegetables, emphasizing freshness and quality with vibrant primary colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZatha4t3u4RXwxseso6tt1KcO8s6hEB0yN3RYIWFJfkr-elv8h5VDwgsw_ZbLmg5v5qyxIhbUihsH3xa-yUeTxdb9kcuGO3dOuWi9BbAtyjqjZe0Zb6OQd_LJF3cWFGI-zNpc1PmohJ69HGPSW-N-2WTb5PL0ebNXvyre4xeIsg10Zqor6H2dn32I5vwSP_2GOm7vrAySYgJvYb0dDNgOyfr2X10xyxC-NPvDb69HKnO5T_NnGSdMBMexuxbu-x9GGRu8FLQj6RFx"/>
+</div>
+<span class="font-body-md text-on-surface">Organic Vine Tomatoes</span>
+</div>
+</td>
+<td class="py-md text-center font-body-md text-on-surface">1</td>
+<td class="py-md text-right font-body-md text-on-surface">£4.50</td>
+</tr>
+<tr>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
+<img alt="Product" class="w-full h-full object-cover" data-alt="Close up shot of fresh baby spinach leaves inside a clear, sustainable plastic container with condensation. The environment is a bright, clean commercial refrigerator at a premium grocery store. Soft, natural morning light spills across the scene, highlighting the deep green hues and crispness of the leaves." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqh_drbMa2OKjhe4bJ5hZAiUjtodQawvmirEbtBO7ddeiYYeYYxO1nTGeL59tsWqpnQ6kTGqW3ow4939LEzkRc-hIxwx7EhWIuGoPvjtTdei-HoPhDbZplemZebiWVtgN8tXqbWMNFJIV9X0i05Kb94muCN8dx67THdd1Rx9Ggh_tVOKtl672g6fAt78MNaF6PUIDE5G9eWvCbw8BqljqAC2k9z1GLFn_aq10QG25CjdR8cHPokAuLM8ZHfE-0gOzR8rTzqim_SRuJ"/>
+</div>
+<span class="font-body-md text-on-surface">Premium Baby Spinach</span>
+</div>
+</td>
+<td class="py-md text-center font-body-md text-on-surface">2</td>
+<td class="py-md text-right font-body-md text-on-surface">£6.00</td>
+</tr>
+<tr>
+<td class="py-md">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
+<img alt="Product" class="w-full h-full object-cover" data-alt="A beautifully captured glass bottle of premium cold-pressed extra virgin olive oil with a elegant, minimalist label. The bottle is placed on a white marble countertop in a high-end, modern kitchen. Subtle reflections of bright, diffused light highlight the golden liquid inside, evoking a sense of purity and reliability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB69UunXrxrh-y_AyDqWZC6-e6oJTSdIqColveKS_asApynLnUjYQ-EEH-0QjrdxAUcX92seTpyoeGS3KiMa5nBhqN0b3kbkiWHttBgcQ9X_t_u25a85XvZMl2TwoXINoPnym2hMZaGXXLYIEeY-L5wiMhX-XUoN1MFOqPwT8mnY3qOt9p6uNagj324OImIT7FXsazey4d6PU_AwB_EcJImPuC1wwt7NrK8PZMBRMhYPCm9_l-B5mYF8HufOryo42uozi_-fALCd1qd"/>
+</div>
+<span class="font-body-md text-on-surface">Extra Virgin Olive Oil</span>
+</div>
+</td>
+<td class="py-md text-center font-body-md text-on-surface">1</td>
+<td class="py-md text-right font-body-md text-on-surface">£8.99</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td class="pt-lg pb-md text-right font-body-md text-on-surface-variant" colspan="2">Subtotal</td>
+<td class="pt-lg pb-md text-right font-body-md text-on-surface">£19.49</td>
+</tr>
+<tr>
+<td class="pb-md text-right font-body-md text-on-surface-variant" colspan="2">Delivery</td>
+<td class="pb-md text-right font-body-md text-primary font-bold">FREE</td>
+</tr>
+<tr class="border-t border-outline">
+<td class="py-lg text-right font-headline-sm text-headline-sm text-on-surface" colspan="2">Total</td>
+<td class="py-lg text-right font-headline-sm text-headline-sm text-primary">£19.49</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+<!-- Call to Actions -->
+<div class="mt-xl flex flex-col md:flex-row gap-lg justify-center">
+<button class="px-xxl py-md bg-primary text-on-primary rounded-lg font-label-lg flex items-center justify-center gap-sm hover:brightness-110 active:scale-95 transition-all shadow-md">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+                Track Order
+            </button>
+<button class="px-xxl py-md border-2 border-primary text-primary rounded-lg font-label-lg flex items-center justify-center gap-sm hover:bg-primary/5 active:scale-95 transition-all">
+                Continue Shopping
+            </button>
+</div>
+<!-- Additional Info Bento Section -->
+<div class="mt-xxl grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="p-lg bg-surface-container-low rounded-xl border border-outline-variant">
+<div class="flex items-center gap-md mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="location_on">location_on</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Delivery Address</h3>
+</div>
+<p class="font-body-md text-on-surface-variant">
+                    John Doe<br/>
+                    221B Baker Street<br/>
+                    London, NW1 6XE<br/>
+                    United Kingdom
+                </p>
+</div>
+<div class="p-lg bg-surface-container-low rounded-xl border border-outline-variant">
+<div class="flex items-center gap-md mb-md">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Payment Method</h3>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="credit_card">credit_card</span>
+<p class="font-body-md text-on-surface-variant">Mastercard ending in •••• 4242</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-xxl bg-surface-container mt-xxl border-t border-outline-variant">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-desktop max-w-container-max mx-auto">
+<div class="col-span-1 md:col-span-1">
+<div class="text-headline-sm font-headline-sm font-bold text-primary mb-md">FreshMart</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Delivering fresh, organic, and quality groceries directly to your doorstep with speed and care.</p>
+</div>
+<div>
+<h4 class="font-label-lg text-on-surface mb-md">Customer Service</h4>
+<ul class="space-y-sm">
+<li><a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Contact Us</a></li>
+<li><a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Shipping Info</a></li>
+<li><a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Returns &amp; Refunds</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-lg text-on-surface mb-md">About</h4>
+<ul class="space-y-sm">
+<li><a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">About Us</a></li>
+<li><a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Careers</a></li>
+<li><a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Sustainability</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-lg text-on-surface mb-md">Legal</h4>
+<ul class="space-y-sm">
+<li><a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Privacy Policy</a></li>
+<li><a class="text-label-sm font-label-sm text-on-surface-variant hover:text-secondary transition-colors" href="#">Terms of Service</a></li>
+</ul>
+</div>
+</div>
+<div class="mt-xl border-t border-outline-variant pt-lg text-center">
+<p class="text-label-sm font-label-sm text-outline">© 2024 FreshMart. All rights reserved.</p>
+</div>
+</footer>
+<script>
+        // Simple micro-interaction for buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => {
+                btn.style.transform = 'scale(0.95)';
+            });
+            btn.addEventListener('mouseup', () => {
+                btn.style.transform = 'scale(1)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+
+        // Add small confetti effect or subtle celebration if needed
+        window.addEventListener('load', () => {
+            console.log('Order confirmation page loaded');
+        });
+    </script>
+</body></html>

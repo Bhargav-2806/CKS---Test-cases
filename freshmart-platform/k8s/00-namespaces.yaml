@@ -1,0 +1,99 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — Namespaces with Pod Security Admission (PSA) labels
+# CKS Domain: Cluster Setup / Cluster Hardening
+#
+# PSA enforce levels:
+#   restricted  → most secure: non-root, no privilege escalation, seccomp
+#   baseline    → basic security: no privileged containers, no hostPath
+#   privileged  → no restrictions (ingress-nginx needs host ports)
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+# Ingress controller — needs host ports (privileged)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn:    privileged
+    pod-security.kubernetes.io/audit:   privileged
+
+---
+# Frontend — serve static/SSR pages (baseline sufficient)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tesco-frontend
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    environment: production
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn:    restricted
+    pod-security.kubernetes.io/audit:   restricted
+
+---
+# Core business services — restricted PSA (non-root, seccomp)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tesco-core
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    environment: production
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn:    restricted
+    pod-security.kubernetes.io/audit:   restricted
+
+---
+# Payment service — maximum isolation, restricted PSA
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tesco-payments
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    environment: production
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/warn:    restricted
+    pod-security.kubernetes.io/audit:   restricted
+
+---
+# Database — baseline (postgres runs as uid 999, has specific syscall needs)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tesco-data
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    environment: production
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn:    baseline
+    pod-security.kubernetes.io/audit:   baseline
+
+---
+# Kafka — baseline (Bitnami kafka runs as uid 1001)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tesco-messaging
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    environment: production
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn:    baseline
+    pod-security.kubernetes.io/audit:   baseline
+
+---
+# Monitoring (Falco, Prometheus — Phase 4+)
+# Falco needs privileged to inspect kernel — using privileged PSA
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tesco-monitoring
+  labels:
+    app.kubernetes.io/part-of: freshmart
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn:    privileged
+    pod-security.kubernetes.io/audit:   privileged

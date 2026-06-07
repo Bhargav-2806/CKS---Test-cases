@@ -1,0 +1,94 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — RBAC: ServiceAccounts per service
+# CKS Domain: Cluster Hardening
+#
+# Principle of least privilege:
+# • Each service gets its own ServiceAccount
+# • automountServiceAccountToken: false  (no services need K8s API access)
+# • No ClusterRoles — services do NOT interact with the K8s API
+# • Fine-grained Roles (Secrets access etc.) added in Phase 4 CKS hardening
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+# tesco-frontend
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: frontend-sa
+  namespace: tesco-frontend
+  labels:
+    app: frontend
+    app.kubernetes.io/part-of: freshmart
+automountServiceAccountToken: false
+
+---
+# tesco-core — product-service
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: product-service-sa
+  namespace: tesco-core
+  labels:
+    app: product-service
+    app.kubernetes.io/part-of: freshmart
+automountServiceAccountToken: false
+
+---
+# tesco-core — cart-service
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cart-service-sa
+  namespace: tesco-core
+  labels:
+    app: cart-service
+    app.kubernetes.io/part-of: freshmart
+automountServiceAccountToken: false
+
+---
+# tesco-core — order-service
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: order-service-sa
+  namespace: tesco-core
+  labels:
+    app: order-service
+    app.kubernetes.io/part-of: freshmart
+automountServiceAccountToken: false
+
+---
+# tesco-payments — payment-service (most restricted)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: payment-service-sa
+  namespace: tesco-payments
+  labels:
+    app: payment-service
+    app.kubernetes.io/part-of: freshmart
+automountServiceAccountToken: false
+
+---
+# tesco-data — postgresql
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgresql-sa
+  namespace: tesco-data
+  labels:
+    app: postgresql
+    app.kubernetes.io/part-of: freshmart
+automountServiceAccountToken: false
+
+---
+# tesco-messaging — kafka
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kafka-sa
+  namespace: tesco-messaging
+  labels:
+    app: kafka
+    app.kubernetes.io/part-of: freshmart
+automountServiceAccountToken: false

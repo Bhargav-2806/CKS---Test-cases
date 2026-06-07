@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# AppArmor Profile — FreshMart Payment Service (most restrictive)
+# Applies to: payment-service
+# Runtime:    gcr.io/distroless/static-debian12  uid=65532 (nonroot)
+#             Static Go binary — no shell, no OS tools, no libc
+#
+# Load:  apparmor_parser -r -W /etc/apparmor.d/freshmart-payment-service
+# Check: aa-status | grep freshmart-payment
+#
+# CKS rationale: payment-service handles financial data.
+# Distroless already removes the OS attack surface.
+# AppArmor adds kernel-level enforcement of what the binary can do.
+# ─────────────────────────────────────────────────────────────────────────────
+
+#include <tunables/global>
+
+profile freshmart-payment-service flags=(attach_disconnected,mediate_deleted) {
+
+  #include <abstractions/base>
+
+  # ── The binary itself (statically linked Go — no shared libs needed) ─────
+  /payment-service              ix,
+
+  # ── Network — TCP only ───────────────────────────────────────────────────
+  network inet  tcp,            # PostgreSQL:5432, inbound API :8004
+  network inet6 tcp,
+  network inet  udp,            # DNS
+
+  # ── /proc — absolute minimum ─────────────────────────────────────────────
+  @{PROC}/@{pid}/fd/            r,
+  @{PROC}/@{pid}/status         r,
+  @{PROC}/sys/kernel/random/boot_id r,
+
+  # ── /dev ─────────────────────────────────────────────────────────────────
+  /dev/null                     rw,
+  /dev/urandom                  r,   # Go runtime uses for UUID generation
+  /dev/random                   r,
+
+  # ── Deny everything else ─────────────────────────────────────────────────
+  # Distroless has no shell, no tools — but AppArmor enforces it at kernel
+  deny /etc/**                  rw,
+  deny /var/**                  rw,
+  deny /home/**                 rw,
+  deny /root/**                 rw,
+  deny /tmp/**                  rw,  # readOnlyRootFilesystem already blocks this
+  deny @{PROC}/sysrq-trigger    w,
+  deny @{PROC}/sys/kernel/core_pattern w,
+  deny @{PROC}/@{pid}/mem       rw,
+  deny /sys/**                  w,
+
+  # No execution of other binaries — distroless shouldn't have any,
+  # but enforce at kernel level anyway
+  deny /**                      x,
+  /payment-service              ix,  # re-allow only the binary
+}

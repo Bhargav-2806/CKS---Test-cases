@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# AppArmor Profile — FreshMart Frontend (Next.js)
+# Applies to: frontend
+# Runtime:    gcr.io/distroless/nodejs20-debian12  uid=65532 (nonroot)
+#
+# Load:  apparmor_parser -r -W /etc/apparmor.d/freshmart-frontend
+# Check: aa-status | grep freshmart-frontend
+# ─────────────────────────────────────────────────────────────────────────────
+
+#include <tunables/global>
+
+profile freshmart-frontend flags=(attach_disconnected,mediate_deleted) {
+
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+
+  # ── Node.js runtime (distroless nodejs) ──────────────────────────────────
+  /nodejs/bin/node              ix,
+  /nodejs/**                    r,
+
+  # ── Next.js app ──────────────────────────────────────────────────────────
+  /app/                         r,
+  /app/**                       r,
+
+  # ── Shared libs ──────────────────────────────────────────────────────────
+  /usr/lib/**                   mr,
+  /lib/**                       mr,
+
+  # ── Network — HTTP/HTTPS ─────────────────────────────────────────────────
+  network inet  tcp,
+  network inet6 tcp,
+  network inet  udp,
+
+  # ── /dev ─────────────────────────────────────────────────────────────────
+  /dev/null                     rw,
+  /dev/urandom                  r,
+
+  # ── /proc ────────────────────────────────────────────────────────────────
+  @{PROC}/@{pid}/fd/            r,
+  @{PROC}/@{pid}/status         r,
+  @{PROC}/sys/kernel/random/boot_id r,
+  @{PROC}/cpuinfo               r,
+  @{PROC}/meminfo               r,
+
+  # ── Deny ─────────────────────────────────────────────────────────────────
+  deny /etc/shadow              rw,
+  deny /root/**                 rw,
+  deny /home/**                 rw,
+  deny @{PROC}/sysrq-trigger    w,
+  deny @{PROC}/sys/kernel/core_pattern w,
+  deny @{PROC}/@{pid}/mem       rw,
+  deny /sys/kernel/security/**  rw,
+  deny /bin/bash                x,
+  deny /bin/sh                  x,
+  deny /usr/bin/curl            x,
+  deny /usr/bin/wget            x,
+}

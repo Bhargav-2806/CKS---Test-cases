@@ -1,0 +1,69 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# AppArmor Profile — FreshMart Python Services
+# Applies to: product-service, cart-service, order-service
+# Runtime:    python:3.12-slim  uid=10001 (appuser)
+#
+# Load:  apparmor_parser -r -W /etc/apparmor.d/freshmart-python-service
+# Check: aa-status | grep freshmart
+# ─────────────────────────────────────────────────────────────────────────────
+
+#include <tunables/global>
+
+profile freshmart-python-service flags=(attach_disconnected,mediate_deleted) {
+
+  #include <abstractions/base>
+  #include <abstractions/nameservice>   # DNS lookups
+
+  # ── Python runtime ───────────────────────────────────────────────────────
+  /usr/bin/python3*             ix,
+  /venv/**                      r,
+  /venv/bin/python3*            ix,
+  /venv/bin/uvicorn             ix,
+
+  # ── Application code ─────────────────────────────────────────────────────
+  /app/                         r,
+  /app/**                       r,
+
+  # ── Python standard library + shared libs ────────────────────────────────
+  /usr/lib/python3/**           r,
+  /usr/lib/x86_64-linux-gnu/**  mr,
+  /lib/x86_64-linux-gnu/**      mr,
+  /usr/local/lib/**             mr,
+
+  # ── Temp files (uvicorn needs /tmp for Unix sockets) ────────────────────
+  /tmp/                         r,
+  /tmp/**                       rw,
+
+  # ── Proc / sys — read-only, limited ─────────────────────────────────────
+  @{PROC}/sys/kernel/random/boot_id  r,
+  @{PROC}/@{pid}/fd/                 r,
+  @{PROC}/@{pid}/status              r,
+  @{PROC}/cpuinfo                    r,
+  @{PROC}/meminfo                    r,
+
+  # ── Network — TCP only (PostgreSQL:5432, inter-service HTTP) ────────────
+  network inet  tcp,
+  network inet6 tcp,
+  network inet  udp,   # DNS
+
+  # ── /dev — minimal ───────────────────────────────────────────────────────
+  /dev/null     rw,
+  /dev/urandom  r,
+  /dev/random   r,
+  /dev/tty      rw,
+
+  # ── Deny — explicit blocks for CKS hardening ────────────────────────────
+  deny /etc/passwd      w,     # no writing to passwd
+  deny /etc/shadow      rw,    # no reading shadow
+  deny /root/**         rw,    # no root home access
+  deny /home/**         rw,    # no user home access
+  deny @{PROC}/sysrq-trigger w,
+  deny @{PROC}/sys/kernel/core_pattern w,
+  deny @{PROC}/@{pid}/mem rw,  # no process memory access
+  deny /sys/kernel/security/** rw,
+  deny /usr/bin/apt*    x,     # no package manager execution
+  deny /usr/bin/curl    x,     # no outbound curl
+  deny /usr/bin/wget    x,     # no outbound wget
+  deny /bin/bash        x,     # no shell execution
+  deny /bin/sh          x,     # no shell execution
+}

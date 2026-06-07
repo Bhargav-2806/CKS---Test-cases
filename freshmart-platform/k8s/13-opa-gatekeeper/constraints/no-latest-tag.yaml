@@ -1,0 +1,32 @@
+# =============================================================================
+# Constraint: freshmart-no-latest-tag
+# enforcementAction: warn — audit mode (logs violations, does not block)
+#
+# WHY warn not deny:
+#   Our FreshMart images are currently tagged :latest (local Kind workflow).
+#   In Phase 5 (CI/CD), images will be tagged with Git SHA or semver.
+#   Setting warn here shows violations in kubectl describe / audit output
+#   without breaking existing deployments. Switch to "deny" when CI tags images.
+#
+# CKS exam note: The examiner will ask you to demonstrate a constraint blocks
+# a violation. Use the privileged/hostpath/allowed-repos constraints for that.
+# This one demonstrates the "audit" mode pattern equally important in practice.
+# =============================================================================
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sNoLatestTag
+metadata:
+  name: freshmart-no-latest-tag
+  annotations:
+    description: "Warn when :latest or untagged images are used. Will be deny after CI/CD adds versioned tags."
+spec:
+  enforcementAction: warn
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    namespaces:
+      - tesco-core
+      - tesco-payments
+      - tesco-frontend
+      - tesco-data
+      - tesco-messaging

@@ -1,0 +1,39 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — etcd Encryption Configuration
+# Phase 4.2 CKS: Fixes kube-bench 1.2.27 + 1.2.28
+#
+# ⚠  This is a TEMPLATE file — the key placeholder is replaced at deploy time
+#    by setup-etcd-encryption.sh which generates a real random 32-byte key.
+#    Never commit a real key to Git.
+#
+# Provider order matters:
+#   First provider = used to ENCRYPT new writes
+#   Subsequent providers = used to DECRYPT reads (for migration)
+#
+# Providers (CKS exam reference):
+#   identity  → no encryption (plaintext) — default K8s behaviour
+#   aescbc    → AES-CBC 256-bit — CKS exam standard, PKCS#7 padding
+#   secretbox → XSalsa20-Poly1305 — stronger than aescbc, recommended
+#   aesgcm    → AES-GCM — fast but key rotation requires restart
+#   kms       → Cloud KMS (AWS KMS, GCP CKMS) — production standard
+#
+# Phase 3 state: identity (plaintext) — secrets readable directly in etcd
+# Phase 4 state: aescbc first → secrets encrypted, identity fallback for migration
+# ─────────────────────────────────────────────────────────────────────────────
+
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+      - secrets                         # Encrypt all Secret objects
+      - configmaps                      # Also encrypt ConfigMaps (belt-and-suspenders)
+    providers:
+      # Primary: aescbc — new writes are encrypted with this key
+      - aescbc:
+          keys:
+            - name: freshmart-key-1     # Key name (used for key rotation tracking)
+              secret: PLACEHOLDER_KEY   # 32-byte base64 key — replaced by setup script
+
+      # Fallback: identity — allows reading pre-existing unencrypted secrets
+      # during the migration window. Remove after re-encryption is confirmed.
+      - identity: {}

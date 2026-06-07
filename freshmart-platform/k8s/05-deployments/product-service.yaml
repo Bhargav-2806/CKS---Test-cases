@@ -1,0 +1,122 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — product-service Deployment + Service
+# Namespace: tesco-core   PSA: restricted
+# Image:     freshmart/product-service:latest  (loaded via kind load)
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: tesco-core
+  labels:
+    app: product-service
+    app.kubernetes.io/part-of: freshmart
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: product-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: product-service
+        app.kubernetes.io/part-of: freshmart
+    spec:
+      serviceAccountName: product-service-sa
+      automountServiceAccountToken: false
+
+      # CKS: pod-level security context (PSA restricted compliant)
+      securityContext:
+        runAsNonRoot: true
+        runAsUser:    10001
+        runAsGroup:   10001
+        fsGroup:      10001
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: product-service
+          image: freshmart/product-service:latest
+          imagePullPolicy: Never     # image pre-loaded via kind load docker-image
+
+          ports:
+            - name: http
+              containerPort: 8001
+              protocol: TCP
+
+          # CKS: container-level security context
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem:   false   # uvicorn needs /tmp — set true in Phase 4 with emptyDir
+            capabilities:
+              drop: ["ALL"]
+
+          envFrom:
+            - configMapRef:
+                name: product-service-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key:  DATABASE_URL
+
+          resources:
+            requests:
+              cpu:    "50m"
+              memory: "128Mi"
+            limits:
+              cpu:    "200m"
+              memory: "256Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
+
+      # Spread across workers for HA
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: product-service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: tesco-core
+  labels:
+    app: product-service
+    app.kubernetes.io/part-of: freshmart
+spec:
+  type: ClusterIP
+  selector:
+    app: product-service
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
+      protocol: TCP

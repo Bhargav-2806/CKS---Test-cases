@@ -1,0 +1,164 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# FreshMart — Local Development Stack
+# Usage:
+#   docker-compose up -d            # start everything
+#   docker-compose up -d postgres   # start DB only
+#   docker-compose logs -f          # tail all logs
+#   docker-compose down -v          # stop + delete volumes
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ─── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: freshmart-postgres
+    environment:
+      POSTGRES_DB:       freshmart
+      POSTGRES_USER:     freshmart
+      POSTGRES_PASSWORD: freshmart
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # init.sql runs once on first start (idempotent — uses IF NOT EXISTS)
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U freshmart -d freshmart"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # ─── Product Service (FastAPI · port 8001) ───────────────────────────────────
+  product-service:
+    build:
+      context: ./services/product-service
+      target: runner
+    container_name: freshmart-product
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://freshmart:freshmart@postgres:5432/freshmart
+      PORT: "8001"
+      DEBUG: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # python:3.12-slim has Python but not curl — use urllib
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8001/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  # ─── Cart Service (FastAPI · port 8002) ──────────────────────────────────────
+  cart-service:
+    build:
+      context: ./services/cart-service
+      target: runner
+    container_name: freshmart-cart
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL:        postgresql://freshmart:freshmart@postgres:5432/freshmart
+      PRODUCT_SERVICE_URL: http://product-service:8001
+      PORT: "8002"
+      DEBUG: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8002/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  # ─── Order Service (FastAPI · port 8003) ─────────────────────────────────────
+  order-service:
+    build:
+      context: ./services/order-service
+      target: runner
+    container_name: freshmart-order
+    ports:
+      - "8003:8003"
+    environment:
+      DATABASE_URL:          postgresql://freshmart:freshmart@postgres:5432/freshmart
+      CART_SERVICE_URL:      http://cart-service:8002
+      PAYMENT_SERVICE_URL:   http://payment-service:8004
+      KAFKA_ENABLED:         "false"
+      PORT: "8003"
+      DEBUG: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      cart-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8003/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  # ─── Payment Service (Go · port 8004) ────────────────────────────────────────
+  payment-service:
+    build:
+      context: ./services/payment-service
+      target: runner
+    container_name: freshmart-payment
+    ports:
+      - "8004:8004"
+    environment:
+      DATABASE_URL:          postgresql://freshmart:freshmart@postgres:5432/freshmart
+      KAFKA_ENABLED:         "false"
+      PORT: "8004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # distroless/static has no shell — healthcheck disabled; use K8s readiness probe in Phase 3
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+
+  # ─── Frontend (Next.js · port 3000) ──────────────────────────────────────────
+  # NOTE: NEXT_PUBLIC_* vars are baked in at build time.
+  # The browser calls localhost:800X which hits the host-exposed ports above.
+  frontend:
+    build:
+      context: ./services/frontend
+      target: runner
+      args:
+        NEXT_PUBLIC_PRODUCT_SERVICE_URL: http://localhost:8001
+        NEXT_PUBLIC_CART_SERVICE_URL:    http://localhost:8002
+        NEXT_PUBLIC_ORDER_SERVICE_URL:   http://localhost:8003
+    container_name: freshmart-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV:    production
+      PORT:        "3000"
+      HOSTNAME:    "0.0.0.0"
+    depends_on:
+      product-service:
+        condition: service_healthy
+      cart-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: freshmart-postgres-data
