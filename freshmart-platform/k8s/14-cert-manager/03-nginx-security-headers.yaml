@@ -1,0 +1,51 @@
+# =============================================================================
+# nginx Ingress Controller — Global Security Headers
+# CKS Domain: Cluster Setup (10%)
+#
+# server-snippet and configuration-snippet annotations are DISABLED in
+# nginx ingress 1.10+ (CVE hardening). The correct way to add security
+# response headers globally is via the nginx ConfigMap.
+#
+# The ingress-nginx-controller ConfigMap references a second ConfigMap
+# (custom-headers) via the "add-headers" key. nginx injects those headers
+# into EVERY response served by the ingress controller.
+#
+# Applied to: ingress-nginx namespace (the controller reads this ConfigMap)
+# =============================================================================
+
+# ─── Step 1: Custom headers ConfigMap ────────────────────────────────────────
+# Each key is a header name, value is the header value.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-response-headers
+  namespace: ingress-nginx
+data:
+  X-Frame-Options:           "DENY"
+  X-Content-Type-Options:    "nosniff"
+  X-XSS-Protection:          "1; mode=block"
+  Referrer-Policy:           "strict-origin-when-cross-origin"
+  Permissions-Policy:        "camera=(), microphone=(), geolocation=()"
+
+---
+# ─── Step 2: Patch the nginx ingress ConfigMap to use custom headers ──────────
+# The ingress-nginx-controller ConfigMap already exists (created by the
+# nginx ingress install). We patch it to add the add-headers key.
+#
+# NOTE: kubectl apply on an existing ConfigMap merges keys, does not replace.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+data:
+  # Point nginx to the custom headers ConfigMap
+  add-headers: "ingress-nginx/custom-response-headers"
+
+  # Additional hardening options
+  ssl-protocols:         "TLSv1.2 TLSv1.3"    # Disable TLS 1.0 and 1.1
+  ssl-ciphers:           "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305"
+  ssl-session-cache:     "shared:SSL:10m"
+  ssl-session-timeout:   "10m"
+  server-tokens:         "false"               # Hide nginx version in Server header
+  hide-headers:          "Server,X-Powered-By" # Remove Server + X-Powered-By headers

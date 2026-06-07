@@ -1,0 +1,114 @@
+# =============================================================================
+# Ingress with TLS — FreshMart (replaces k8s/06-ingress/ingress.yaml)
+# CKS Domain: Cluster Setup (10%) — Ingress with TLS, HTTP→HTTPS redirect
+#
+# Changes from Phase 3:
+#   + host: freshmart.local added to all rules
+#   + spec.tls section added (references cert-manager-managed Secrets)
+#   + ssl-redirect: true — HTTP 308 to HTTPS
+#   + force-ssl-redirect: true — even behind proxy
+#   + HSTS header — tells browsers to always use HTTPS
+#
+# Security headers (X-Frame-Options, CSP etc.) are added globally via the
+# nginx ingress ConfigMap (k8s/14-cert-manager/03-nginx-security-headers.yaml)
+# instead of per-Ingress server-snippet, which is disabled in nginx 1.10+.
+# =============================================================================
+
+# ── API Ingress (tesco-core) — with TLS ──────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: freshmart-api
+  namespace: tesco-core
+  labels:
+    app.kubernetes.io/part-of: freshmart
+  annotations:
+    # ── TLS / HTTPS ───────────────────────────────────────────────────────────
+    nginx.ingress.kubernetes.io/ssl-redirect:       "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    # ── HSTS (tells browser to always use HTTPS for this domain) ──────────────
+    nginx.ingress.kubernetes.io/hsts:                    "true"
+    nginx.ingress.kubernetes.io/hsts-max-age:            "31536000"   # 1 year
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+    nginx.ingress.kubernetes.io/hsts-preload:            "true"
+
+    # ── Proxy settings ────────────────────────────────────────────────────────
+    nginx.ingress.kubernetes.io/proxy-body-size:       "1m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout:    "30"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-buffering:       "on"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - freshmart.local
+      secretName: freshmart-api-tls    # Created by cert-manager (01-certificates.yaml)
+  rules:
+    - host: freshmart.local
+      http:
+        paths:
+          - path: /api/products
+            pathType: Prefix
+            backend:
+              service:
+                name: product-service
+                port:
+                  number: 8001
+
+          - path: /api/cart
+            pathType: Prefix
+            backend:
+              service:
+                name: cart-service
+                port:
+                  number: 8002
+
+          - path: /api/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service
+                port:
+                  number: 8003
+
+---
+# ── Frontend Ingress (tesco-frontend) — with TLS ─────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: freshmart-frontend
+  namespace: tesco-frontend
+  labels:
+    app.kubernetes.io/part-of: freshmart
+  annotations:
+    # ── TLS / HTTPS ───────────────────────────────────────────────────────────
+    nginx.ingress.kubernetes.io/ssl-redirect:       "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    # ── HSTS ─────────────────────────────────────────────────────────────────
+    nginx.ingress.kubernetes.io/hsts:                    "true"
+    nginx.ingress.kubernetes.io/hsts-max-age:            "31536000"
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+    nginx.ingress.kubernetes.io/hsts-preload:            "true"
+
+    # ── Proxy settings ────────────────────────────────────────────────────────
+    nginx.ingress.kubernetes.io/proxy-read-timeout:    "60"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - freshmart.local
+      secretName: freshmart-tls       # Created by cert-manager (01-certificates.yaml)
+  rules:
+    - host: freshmart.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000

@@ -1,0 +1,318 @@
+# =============================================================================
+# FreshMart Custom Falco Rules
+# CKS Domain: Monitoring, Logging & Runtime Security (20%)
+#
+# Falco watches kernel system calls in real time. These rules define what
+# "suspicious" looks like for the FreshMart e-commerce platform.
+#
+# Rule anatomy:
+#   condition  → kernel-level filter (when to fire)
+#   output     → what to log (with field substitutions)
+#   priority   → DEBUG / INFO / NOTICE / WARNING / ERROR / CRITICAL / ALERT / EMERGENCY
+#   tags       → for filtering / routing alerts
+# =============================================================================
+
+# ─── Lists (reusable sets) ────────────────────────────────────────────────────
+
+- list: freshmart_app_namespaces
+  items:
+    - tesco-core
+    - tesco-payments
+    - tesco-frontend
+
+- list: freshmart_all_namespaces
+  items:
+    - tesco-core
+    - tesco-payments
+    - tesco-frontend
+    - tesco-data
+    - tesco-messaging
+
+- list: shell_binaries
+  items: [sh, bash, zsh, dash, csh, ksh, tcsh, ash]
+
+- list: sensitive_files
+  items:
+    - /etc/passwd
+    - /etc/shadow
+    - /etc/sudoers
+    - /etc/gshadow
+    - /root/.ssh/authorized_keys
+    - /root/.bash_history
+
+- list: allowed_payment_ports
+  items: [5432]   # PostgreSQL only
+
+# ─── Macros (reusable condition fragments) ────────────────────────────────────
+
+- macro: freshmart_app_container
+  condition: >
+    container and
+    k8s.ns.name in (freshmart_app_namespaces)
+
+- macro: payment_container
+  condition: >
+    container and
+    k8s.ns.name = "tesco-payments"
+
+- macro: freshmart_any_container
+  condition: >
+    container and
+    k8s.ns.name in (freshmart_all_namespaces)
+
+# ─── Rule 1: Shell Spawned in FreshMart Container ────────────────────────────
+# CKS scenario: attacker exec'd into a container and opened a shell.
+# All FreshMart images are distroless (payment) or slim — no shell needed at
+# runtime. Any shell execution is a red flag.
+
+- rule: FreshMart Shell Spawned in Container
+  desc: >
+    A shell was executed inside a FreshMart application container.
+    This indicates either a kubectl exec session or a compromised process
+    spawning a shell for lateral movement. All FreshMart containers are
+    distroless or shell-free at runtime.
+  condition: >
+    spawned_process and
+    freshmart_app_container and
+    proc.name in (shell_binaries)
+  output: >
+    SHELL SPAWNED IN FRESHMART CONTAINER (
+    user=%user.name
+    shell=%proc.name
+    parent=%proc.pname
+    cmdline=%proc.cmdline
+    ns=%k8s.ns.name
+    pod=%k8s.pod.name
+    image=%container.image.repository
+    container_id=%container.id)
+  priority: CRITICAL
+  tags: [freshmart, cks, shell, container_escape, T1059]
+
+# ─── Rule 2: Any Process in Payment-Service (strictest rule) ─────────────────
+# payment-service uses gcr.io/distroless/static — a scratch-like image with
+# ZERO binaries. The ONLY process that should ever run is /payment-service.
+# Anything else means the container has been compromised.
+
+- rule: FreshMart Unexpected Process in Payment Service
+  desc: >
+    A process other than the payment-service binary was spawned in tesco-payments.
+    The payment-service runs a distroless image — no shell, no tools, no other
+    executables exist in the image. Any other process is a container escape indicator.
+  condition: >
+    spawned_process and
+    payment_container and
+    proc.name != "payment-service"
+  output: >
+    CRITICAL: UNEXPECTED PROCESS IN PAYMENT-SERVICE (
+    user=%user.name
+    proc=%proc.name
+    cmdline=%proc.cmdline
+    parent=%proc.pname
+    pod=%k8s.pod.name
+    ns=%k8s.ns.name
+    image=%container.image.repository)
+  priority: CRITICAL
+  tags: [freshmart, payment, critical, container_escape, T1059]
+
+# ─── Rule 3: Sensitive File Read in Container ─────────────────────────────────
+# Reading /etc/shadow, /etc/passwd etc. inside a container indicates credential
+# harvesting or recon. Application containers have no reason to read these.
+
+- rule: FreshMart Sensitive File Read
+  desc: >
+    A container is reading a sensitive system file. Application containers
+    should never need to read credential files, SSH keys, or bash history.
+    This indicates reconnaissance or credential harvesting.
+  condition: >
+    open_read and
+    freshmart_any_container and
+    fd.name in (sensitive_files)
+  output: >
+    SENSITIVE FILE READ IN CONTAINER (
+    user=%user.name
+    file=%fd.name
+    proc=%proc.name
+    cmdline=%proc.cmdline
+    ns=%k8s.ns.name
+    pod=%k8s.pod.name
+    image=%container.image.repository)
+  priority: WARNING
+  tags: [freshmart, cks, credential_access, T1003]
+
+# ─── Rule 4: Write in Payment Service Filesystem ─────────────────────────────
+# payment-service has readOnlyRootFilesystem: true. Any write attempt to a
+# non-ephemeral path is either a misconfiguration or an attack attempting
+# to plant malicious files.
+
+- rule: FreshMart Write in Immutable Payment Container
+  desc: >
+    A write was attempted to the payment-service container filesystem.
+    This container runs with readOnlyRootFilesystem: true — all writes
+    except /tmp and /dev should be impossible and indicate container tampering.
+  condition: >
+    open_write and
+    payment_container and
+    not fd.name startswith /tmp and
+    not fd.name startswith /dev and
+    not fd.name startswith /proc
+  output: >
+    WRITE ATTEMPT IN IMMUTABLE PAYMENT CONTAINER (
+    user=%user.name
+    file=%fd.name
+    proc=%proc.name
+    ns=%k8s.ns.name
+    pod=%k8s.pod.name)
+  priority: ERROR
+  tags: [freshmart, payment, immutability, T1565]
+
+# ─── Rule 5: Package Manager in Container ─────────────────────────────────────
+# Running apt, yum, pip, npm etc. inside a running container means someone
+# is installing tools post-deployment — a classic attacker technique to
+# bring in tools (netcat, curl, nmap) after gaining initial access.
+
+- rule: FreshMart Package Manager Executed in Container
+  desc: >
+    A package manager (apt, pip, npm, curl-for-install) was executed in a
+    running FreshMart container. Attackers install tools after gaining
+    container access. All dependencies must be baked into the image at build time.
+  condition: >
+    spawned_process and
+    freshmart_any_container and
+    proc.name in (apt, apt-get, apk, yum, dnf, pip, pip3, npm, yarn, gem, cargo)
+  output: >
+    PACKAGE MANAGER EXECUTED IN CONTAINER (
+    user=%user.name
+    pkg_mgr=%proc.name
+    cmdline=%proc.cmdline
+    ns=%k8s.ns.name
+    pod=%k8s.pod.name
+    image=%container.image.repository)
+  priority: ERROR
+  tags: [freshmart, cks, T1072, supply_chain]
+
+# ─── Rule 6: Unexpected Outbound Connection from Payment Service ──────────────
+# payment-service should ONLY connect to PostgreSQL on port 5432.
+# Any other outbound connection indicates data exfiltration or C2 communication.
+
+- rule: FreshMart Payment Service Unexpected Network Connection
+  desc: >
+    payment-service made an outbound TCP connection to a non-PostgreSQL destination.
+    payment-service is only permitted to connect to PostgreSQL (port 5432).
+    Any other connection is a data exfiltration or C2 indicator.
+  condition: >
+    outbound and
+    payment_container and
+    not fd.sport in (allowed_payment_ports) and
+    not fd.rport in (allowed_payment_ports)
+  output: >
+    PAYMENT SERVICE UNEXPECTED OUTBOUND CONNECTION (
+    proc=%proc.name
+    connection=%fd.name
+    lport=%fd.lport
+    rport=%fd.rport
+    rip=%fd.rip
+    ns=%k8s.ns.name
+    pod=%k8s.pod.name)
+  priority: CRITICAL
+  tags: [freshmart, payment, network, data_exfiltration, T1041]
+
+# ─── Rule 7: Privilege Escalation Attempt ────────────────────────────────────
+# Detect setuid/setgid execution — a container process trying to elevate
+# its privileges by running a setuid binary (e.g. sudo, su).
+
+- rule: FreshMart Privilege Escalation Attempt
+  desc: >
+    A setuid binary was executed inside a FreshMart container. setuid
+    programs run as their owner's UID (often root) regardless of who
+    invokes them — a classic privilege escalation vector.
+  condition: >
+    spawned_process and
+    freshmart_any_container and
+    proc.is_suid_exe = true
+  output: >
+    SETUID BINARY EXECUTED IN CONTAINER (
+    user=%user.name
+    proc=%proc.name
+    cmdline=%proc.cmdline
+    ns=%k8s.ns.name
+    pod=%k8s.pod.name
+    image=%container.image.repository)
+  priority: CRITICAL
+  tags: [freshmart, cks, privilege_escalation, T1548]
+
+# ─── Rule 8: Container Drift — New Executable ─────────────────────────────────
+# Detect when an executable that was NOT present in the original container
+# image is run. This is Falco's "container drift" detection — it means
+# someone has written and executed a new binary inside the container.
+
+- rule: FreshMart Container Drift Detected
+  desc: >
+    An executable was run that was not present in the original container image
+    (container drift). This means a new binary was written into the running
+    container, which is a strong indicator of container compromise or
+    supply chain attack.
+  condition: >
+    spawned_process and
+    freshmart_any_container and
+    proc.is_exe_upper_layer = true
+  output: >
+    CONTAINER DRIFT DETECTED — NEW EXECUTABLE NOT IN IMAGE (
+    user=%user.name
+    proc=%proc.name
+    exe=%proc.exe
+    ns=%k8s.ns.name
+    pod=%k8s.pod.name
+    image=%container.image.repository
+    digest=%container.image.digest)
+  priority: CRITICAL
+  tags: [freshmart, cks, drift, T1036, supply_chain]
+
+# ─── Rule 9: /proc Filesystem Recon ──────────────────────────────────────────
+# Reading /proc/1/environ, /proc/1/cmdline etc. lets a container see host
+# process info and environment variables — used for recon and credential theft.
+
+- rule: FreshMart Proc Filesystem Recon
+  desc: >
+    A container is reading /proc/1/ (init process) entries. This allows a
+    container to read the host init process environment variables (potential
+    secrets) and is a common container escape recon technique.
+  condition: >
+    open_read and
+    freshmart_any_container and
+    fd.name startswith /proc/1/ and
+    fd.name in (/proc/1/environ, /proc/1/cmdline, /proc/1/maps, /proc/1/mem)
+  output: >
+    PROC FILESYSTEM RECON IN CONTAINER (
+    user=%user.name
+    file=%fd.name
+    proc=%proc.name
+    ns=%k8s.ns.name
+    pod=%k8s.pod.name)
+  priority: WARNING
+  tags: [freshmart, cks, recon, container_escape, T1082]
+
+# ─── Rule 10: Outbound to Unexpected Port from Core Services ─────────────────
+# product/cart/order services should only call each other on defined ports
+# (8001-8004) and PostgreSQL (5432). Anything else is suspicious.
+
+- rule: FreshMart Core Service Unexpected Outbound Port
+  desc: >
+    A FreshMart core service made an outbound connection on an unexpected port.
+    Core services (product, cart, order) should only connect to other internal
+    services (8001-8004) and PostgreSQL (5432). Unexpected ports suggest
+    data exfiltration or reverse shell.
+  condition: >
+    outbound and
+    freshmart_app_container and
+    k8s.ns.name = "tesco-core" and
+    not fd.rport in (5432, 8001, 8002, 8003, 8004, 9092, 53)
+  output: >
+    CORE SERVICE UNEXPECTED OUTBOUND (
+    proc=%proc.name
+    connection=%fd.name
+    rport=%fd.rport
+    rip=%fd.rip
+    ns=%k8s.ns.name
+    pod=%k8s.pod.name)
+  priority: WARNING
+  tags: [freshmart, network, T1041]

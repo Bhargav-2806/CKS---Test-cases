@@ -1,0 +1,64 @@
+# =============================================================================
+# TLS Certificates — FreshMart
+# CKS Domain: Cluster Setup (10%) — Ingress TLS
+#
+# One Certificate per namespace that has an Ingress object.
+# The TLS Secret MUST be in the same namespace as the Ingress that references it.
+#
+# freshmart-api-tls    → tesco-core      (for freshmart-api Ingress)
+# freshmart-tls        → tesco-frontend  (for freshmart-frontend Ingress)
+#
+# cert-manager watches these Certificate objects and:
+# 1. Creates the TLS key pair
+# 2. Sends a CSR to freshmart-ca-issuer
+# 3. Stores the signed cert in the named Secret
+# 4. Automatically renews before expiry (renewBefore)
+# =============================================================================
+
+# ─── Certificate for tesco-frontend (main site) ──────────────────────────────
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: freshmart-tls
+  namespace: tesco-frontend
+  annotations:
+    description: "TLS certificate for freshmart.local — used by freshmart-frontend Ingress"
+spec:
+  secretName: freshmart-tls        # Secret created in tesco-frontend namespace
+  duration: 2160h                  # 90 days
+  renewBefore: 360h                # Renew 15 days before expiry (cert-manager auto-renews)
+  subject:
+    organizations:
+      - FreshMart
+  commonName: freshmart.local
+  dnsNames:
+    - freshmart.local
+    - www.freshmart.local
+  issuerRef:
+    name: freshmart-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+
+---
+# ─── Certificate for tesco-core (API routes) ─────────────────────────────────
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: freshmart-api-tls
+  namespace: tesco-core
+  annotations:
+    description: "TLS certificate for freshmart.local API routes — used by freshmart-api Ingress"
+spec:
+  secretName: freshmart-api-tls    # Secret created in tesco-core namespace
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - FreshMart
+  commonName: freshmart.local
+  dnsNames:
+    - freshmart.local
+  issuerRef:
+    name: freshmart-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io

@@ -1,0 +1,81 @@
+# =============================================================================
+# Falco Helm Values — FreshMart CKS Project
+# Chart: falcosecurity/falco
+# Version: 4.x (Falco 0.39+)
+#
+# Driver: modern_ebpf
+#   - Uses CO-RE (Compile Once – Run Everywhere) eBPF programs
+#   - No kernel headers needed — works on Kind/Docker Desktop on macOS
+#   - Requires kernel >= 5.8 (Docker Desktop on macOS: ✅)
+#   - Does NOT require privileged containers (unlike kmod)
+# =============================================================================
+
+# ─── Driver ──────────────────────────────────────────────────────────────────
+driver:
+  kind: modern_ebpf    # Best for Kind/Docker Desktop. Alternatives: ebpf, kmod
+
+# ─── Falco Config ────────────────────────────────────────────────────────────
+falco:
+  # JSON output — easier to parse and route to SIEM/Loki
+  json_output: true
+  json_include_output_property: true
+
+  # Log level for Falco's own logs (not alert output)
+  log_level: info
+
+  # Rule files loaded in order. Later files can override earlier ones.
+  rules_file:
+    - /etc/falco/falco_rules.yaml           # Falco built-in rules
+    - /etc/falco/falco_rules.local.yaml     # Local overrides
+    - /etc/falco/rules.d                    # Custom rules directory
+
+  # Alert output destinations
+  stdout_output:
+    enabled: true    # Visible in kubectl logs
+
+  grpc:
+    enabled: true    # Enables falco-exporter / falcosidekick integration
+
+  grpc_output:
+    enabled: true
+
+# ─── Custom Rules ─────────────────────────────────────────────────────────────
+# These are mounted into /etc/falco/rules.d/ inside the Falco pod.
+# Content is inlined from security/falco/rules/freshmart-rules.yaml
+customRules:
+  freshmart_rules.yaml: |
+    # FreshMart rules are loaded from the external file during helm install.
+    # See: --set-file customRules.freshmart_rules\\.yaml=security/falco/rules/freshmart-rules.yaml
+
+# ─── Tolerations — Falco runs on ALL nodes as DaemonSet ──────────────────────
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule
+
+# ─── Resources ───────────────────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1024Mi
+
+# ─── Falco Sidekick (optional — routes alerts to Slack/Loki/Webhook) ─────────
+# Enable in Phase 8 (Observability) when Loki is running.
+falcosidekick:
+  enabled: false    # Set to true in Phase 8
+
+# ─── falcoctl — manages Falco rules artifacts ────────────────────────────────
+falcoctl:
+  artifact:
+    install:
+      refs:
+        - falco-rules:3    # Official Falco ruleset v3
+    follow:
+      refs:
+        - falco-rules:3
