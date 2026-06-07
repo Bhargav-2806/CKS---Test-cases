@@ -1,4 +1,5 @@
 import logging
+import os
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -17,6 +18,7 @@ from . import kafka_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+log = logger  # alias used in _process_payment
 
 DELIVERY_FEE = 3.99
 
@@ -65,14 +67,44 @@ async def _get_cart(session_id: str) -> dict:
 
 
 async def _process_payment(order_id: str, amount: float, card_number: str) -> dict:
-    """Call payment-service synchronously. Demonstrates inter-service mTLS in K8s."""
+    """Call payment-service with mTLS if cert files are mounted, plain HTTP otherwise.
+
+    mTLS flow:
+      1. order-service presents /certs/tls.crt (CN=order-service) to payment-service
+      2. order-service verifies payment-service's server cert against /certs/ca.crt
+      3. payment-service verifies our cert against the same CA
+      4. payment-service checks our CN == "order-service" (identity enforcement)
+      Result: cryptographically proven that only order-service can reach payment-service.
+    """
+    mtls_cert = os.getenv("MTLS_CERT_FILE")
+    mtls_key  = os.getenv("MTLS_KEY_FILE")
+    mtls_ca   = os.getenv("MTLS_CA_FILE")
+
+    # Build httpx client with mTLS if cert files are present (mounted by K8s)
+    if mtls_cert and mtls_key and mtls_ca:
+        # cert= presents our client certificate to payment-service
+        # verify= validates payment-service's server cert against our CA
+        client_kwargs = {
+            "cert":    (mtls_cert, mtls_key),
+            "verify":  mtls_ca,
+            "timeout": 10.0,
+        }
+        log.info("_process_payment: using mTLS (cert=%s ca=%s)", mtls_cert, mtls_ca)
+    else:
+        # Fallback: plain HTTP (Phase 3 behaviour — no certs mounted)
+        client_kwargs = {
+            "verify":  False,
+            "timeout": 10.0,
+        }
+        log.warning("_process_payment: mTLS certs not found — using plain HTTP (MTLS_CERT_FILE not set)")
+
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(**client_kwargs) as client:
             resp = await client.post(
                 f"{settings.payment_service_url}/api/payments",
                 json={
-                    "order_id": order_id,
-                    "amount": amount,
+                    "order_id":      order_id,
+                    "amount":        amount,
                     "card_last_four": card_number[-4:] if len(card_number) >= 4 else "0000",
                 },
             )

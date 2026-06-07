@@ -1,0 +1,35 @@
+# =============================================================================
+# ConfigMap Patches — mTLS env vars for payment-service and order-service
+# These patch the existing ConfigMaps created in Phase 3.
+# kubectl apply merges keys — it does not replace the entire ConfigMap.
+# =============================================================================
+
+# ─── payment-service: enable mTLS server ─────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-service-config
+  namespace: tesco-payments
+data:
+  # mTLS configuration — payment-service reads these at startup
+  MTLS_ENABLED:    "true"
+  MTLS_CERT_FILE:  "/certs/tls.crt"      # Server certificate
+  MTLS_KEY_FILE:   "/certs/tls.key"      # Server private key
+  MTLS_CA_FILE:    "/certs/ca.crt"       # CA to verify client certificates
+  MTLS_CLIENT_CN:  "order-service"       # Only this CN is allowed to call us
+
+---
+# ─── order-service: enable mTLS client ───────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+  namespace: tesco-core
+data:
+  # Switch payment URL from HTTP to HTTPS (payment-service now speaks mTLS)
+  PAYMENT_SERVICE_URL: "https://payment-service.tesco-payments.svc.cluster.local:8004"
+
+  # mTLS client configuration — order-service presents this cert to payment-service
+  MTLS_CERT_FILE:  "/certs/tls.crt"      # Client certificate (CN=order-service)
+  MTLS_KEY_FILE:   "/certs/tls.key"      # Client private key
+  MTLS_CA_FILE:    "/certs/ca.crt"       # CA to verify payment-service's server cert

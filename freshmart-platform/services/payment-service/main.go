@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -17,14 +19,23 @@ import (
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 type Config struct {
-	DatabaseURL      string
-	KafkaBootstrap   string
-	KafkaEnabled     bool
-	Port             string
+	DatabaseURL    string
+	KafkaBootstrap string
+	KafkaEnabled   bool
+	Port           string
+
+	// mTLS configuration — enabled when MTLS_ENABLED=true
+	// Cert files are mounted from the payment-server-tls Secret (cert-manager)
+	MTLSEnabled   bool
+	MTLSCertFile  string // /certs/tls.crt  — server certificate
+	MTLSKeyFile   string // /certs/tls.key  — server private key
+	MTLSCAFile    string // /certs/ca.crt   — CA to verify client certificates
+	MTLSClientCN  string // expected CommonName on client cert (must be "order-service")
 }
 
 func loadConfig() Config {
 	kafkaEnabled := os.Getenv("KAFKA_ENABLED") == "true"
+	mtlsEnabled  := os.Getenv("MTLS_ENABLED") == "true"
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8004"
@@ -34,6 +45,11 @@ func loadConfig() Config {
 		KafkaBootstrap: getEnv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"),
 		KafkaEnabled:   kafkaEnabled,
 		Port:           port,
+		MTLSEnabled:    mtlsEnabled,
+		MTLSCertFile:   getEnv("MTLS_CERT_FILE", "/certs/tls.crt"),
+		MTLSKeyFile:    getEnv("MTLS_KEY_FILE",  "/certs/tls.key"),
+		MTLSCAFile:     getEnv("MTLS_CA_FILE",   "/certs/ca.crt"),
+		MTLSClientCN:   getEnv("MTLS_CLIENT_CN", "order-service"),
 	}
 }
 
@@ -227,6 +243,71 @@ func respondError(w http.ResponseWriter, code int, msg string) {
 	respondJSON(w, code, map[string]string{"error": msg})
 }
 
+// ─── mTLS Server ──────────────────────────────────────────────────────────────
+
+// buildMTLSConfig creates a tls.Config that:
+//   1. Presents the server's certificate to clients
+//   2. Requires clients to present a certificate (mutual TLS)
+//   3. Verifies the client cert is signed by our CA
+//   4. Verifies the client cert's CN is exactly "order-service"
+//      → only order-service can call payment-service, enforced at TLS layer
+func (s *Server) buildMTLSConfig() (*tls.Config, error) {
+	// Load server cert + key
+	serverCert, err := tls.LoadX509KeyPair(s.cfg.MTLSCertFile, s.cfg.MTLSKeyFile)
+	if err != nil {
+		return nil, fmt.Errorf("loading server cert: %w", err)
+	}
+
+	// Load CA cert for verifying client certificates
+	caPEM, err := os.ReadFile(s.cfg.MTLSCAFile)
+	if err != nil {
+		return nil, fmt.Errorf("reading CA cert: %w", err)
+	}
+	caPool := x509.NewCertPool()
+	if !caPool.AppendCertsFromPEM(caPEM) {
+		return nil, fmt.Errorf("failed to parse CA cert PEM")
+	}
+
+	expectedCN := s.cfg.MTLSClientCN
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
+
+		// RequireAndVerifyClientCert: client MUST present a cert signed by caPool.
+		// Connections without a valid client cert are rejected at TLS handshake.
+		ClientAuth: tls.RequireAndVerifyClientCert,
+		ClientCAs:  caPool,
+
+		// Minimum TLS 1.2 — disables TLS 1.0 and 1.1
+		MinVersion: tls.VersionTLS12,
+
+		// Strong cipher suites only (ECDHE + AES-GCM or CHACHA20)
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+		},
+
+		// Additional identity check: verify client CN == "order-service"
+		// This runs AFTER cert chain validation succeeds.
+		// Prevents any other service (with a valid cert from our CA) from calling
+		// payment-service — only order-service is authorized.
+		VerifyPeerCertificate: func(_ [][]byte, verifiedChains [][]*x509.Certificate) error {
+			if len(verifiedChains) == 0 || len(verifiedChains[0]) == 0 {
+				return fmt.Errorf("mTLS: no verified certificate chain")
+			}
+			clientCN := verifiedChains[0][0].Subject.CommonName
+			if clientCN != expectedCN {
+				log.Printf("mTLS REJECTED: client CN=%q (expected %q)", clientCN, expectedCN)
+				return fmt.Errorf("unauthorized client: CN=%q is not permitted to call payment-service", clientCN)
+			}
+			log.Printf("mTLS OK: client authenticated — CN=%s", clientCN)
+			return nil
+		},
+	}, nil
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 func main() {
@@ -247,8 +328,32 @@ func main() {
 	mux.HandleFunc("POST /api/payments",     srv.handleProcessPayment)
 	mux.HandleFunc("GET /api/payments/{id}", srv.handleGetPayment)
 
-	log.Printf("Payment service listening on :%s", cfg.Port)
-	if err := http.ListenAndServe(":"+cfg.Port, mux); err != nil {
-		log.Fatalf("Server failed: %v", err)
+	httpServer := &http.Server{
+		Addr:    ":" + cfg.Port,
+		Handler: mux,
+	}
+
+	if cfg.MTLSEnabled {
+		// ── mTLS mode: mutual TLS — both sides authenticate ──────────────────
+		tlsCfg, err := srv.buildMTLSConfig()
+		if err != nil {
+			log.Fatalf("mTLS config failed: %v", err)
+		}
+		httpServer.TLSConfig = tlsCfg
+
+		log.Printf("Payment service listening with mTLS on :%s (client CN required: %s)",
+			cfg.Port, cfg.MTLSClientCN)
+
+		// ListenAndServeTLS("", "") — cert/key already loaded in TLSConfig
+		if err := httpServer.ListenAndServeTLS("", ""); err != nil {
+			log.Fatalf("mTLS server failed: %v", err)
+		}
+	} else {
+		// ── Plain HTTP mode (Phase 3 default — no certs mounted) ─────────────
+		log.Printf("Payment service listening on :%s (plain HTTP — set MTLS_ENABLED=true for mTLS)",
+			cfg.Port)
+		if err := httpServer.ListenAndServe(); err != nil {
+			log.Fatalf("Server failed: %v", err)
+		}
 	}
 }

@@ -1,0 +1,66 @@
+# =============================================================================
+# Vault + ESO — Namespaces, RBAC, and Auth Token
+# CKS Domain: Minimize Microservice Vulnerabilities (20%)
+#
+# Resources created here:
+#   1. external-secrets namespace (PSA: restricted)
+#   2. ESO ServiceAccount — used by ESO to call K8s API
+#   3. vault-token Secret — ESO presents this token to Vault to authenticate
+#      (dev mode approach: static root token)
+#      (production approach: K8s auth — SA JWT → Vault → dynamic token)
+# =============================================================================
+
+# ─── external-secrets namespace ──────────────────────────────────────────────
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: external-secrets
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit:   restricted
+    pod-security.kubernetes.io/warn:    restricted
+    app.kubernetes.io/part-of: freshmart
+
+---
+# ─── Vault root token Secret (dev mode only) ─────────────────────────────────
+# ESO reads this Secret to authenticate with Vault using the token auth method.
+# The token value must match server.dev.devRootToken in vault-values.yaml.
+#
+# IN PRODUCTION: replace this with K8s auth:
+#   - ESO uses its own ServiceAccount JWT to authenticate with Vault
+#   - Vault verifies the JWT with the K8s API
+#   - No static tokens in K8s Secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-token
+  namespace: external-secrets
+  annotations:
+    description: "Vault root token for ESO auth (dev mode only — use K8s auth in production)"
+type: Opaque
+stringData:
+  token: "freshmart-vault-root"    # matches vault-values.yaml devRootToken
+
+---
+# ─── ESO RBAC: ClusterRole to read K8s ServiceAccount tokens ─────────────────
+# ESO needs permission to read ServiceAccount tokens to pass to Vault
+# when using K8s auth method (production setup)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eso-vault-token-reviewer
+  labels:
+    app.kubernetes.io/part-of: freshmart
+rules:
+  - apiGroups: [""]
+    resources: ["serviceaccounts/token"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get"]
+  - apiGroups: ["authentication.k8s.io"]
+    resources: ["tokenreviews"]
+    verbs: ["create"]
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["subjectaccessreviews"]
+    verbs: ["create"]

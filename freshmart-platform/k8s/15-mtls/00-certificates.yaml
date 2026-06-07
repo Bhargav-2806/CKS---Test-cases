@@ -1,0 +1,83 @@
+# =============================================================================
+# mTLS Certificates — FreshMart
+# CKS Domain: Minimize Microservice Vulnerabilities (20%)
+#
+# Two certificates issued by freshmart-ca-issuer (set up in Phase 4.8):
+#
+#   payment-server-tls  → tesco-payments namespace
+#     - Server certificate for payment-service
+#     - ALL internal K8s DNS names as SANs (how pods reach it internally)
+#     - cert-manager stores: tls.crt, tls.key, ca.crt
+#
+#   order-client-tls    → tesco-core namespace
+#     - Client certificate for order-service
+#     - commonName: order-service (payment-service verifies this CN)
+#     - usage: client auth
+#     - cert-manager stores: tls.crt, tls.key, ca.crt
+#
+# Both Secrets include ca.crt — used to verify the other side's certificate.
+# =============================================================================
+
+# ─── Server Certificate for payment-service ──────────────────────────────────
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: payment-server-tls
+  namespace: tesco-payments
+  annotations:
+    description: "mTLS server cert for payment-service. CN verified by order-service."
+spec:
+  secretName: payment-server-tls
+  duration: 2160h      # 90 days
+  renewBefore: 360h    # Auto-renew 15 days early
+  subject:
+    organizations:
+      - FreshMart
+  commonName: payment-service
+  # All DNS names pods use to reach payment-service internally
+  dnsNames:
+    - payment-service
+    - payment-service.tesco-payments
+    - payment-service.tesco-payments.svc
+    - payment-service.tesco-payments.svc.cluster.local
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: freshmart-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+
+---
+# ─── Client Certificate for order-service ────────────────────────────────────
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: order-client-tls
+  namespace: tesco-core
+  annotations:
+    description: "mTLS client cert for order-service. payment-service verifies CN=order-service."
+spec:
+  secretName: order-client-tls
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - FreshMart
+  # payment-service verifies this CN — it must be exactly "order-service"
+  commonName: order-service
+  usages:
+    - client auth
+    - digital signature
+    - key encipherment
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: freshmart-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io

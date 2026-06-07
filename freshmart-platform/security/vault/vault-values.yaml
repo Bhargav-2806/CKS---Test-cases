@@ -1,0 +1,72 @@
+# =============================================================================
+# HashiCorp Vault — Helm Values (Kind/Development)
+# Chart: hashicorp/vault
+#
+# Mode: Development (dev mode)
+#   - Auto-initialized and auto-unsealed on startup
+#   - Root token = freshmart-vault-root (set below)
+#   - In-memory storage (resets on pod restart — expected in dev)
+#   - Single replica (no HA — use raft for production)
+#
+# Production differences (Phase 7 — EKS):
+#   - server.dev.enabled: false
+#   - server.ha.enabled: true (3 replicas, raft storage)
+#   - server.auditStorage.enabled: true (audit log to disk)
+#   - Auto-unseal via AWS KMS (not manual unseal keys)
+#   - TLS from cert-manager or AWS ACM
+# =============================================================================
+
+global:
+  enabled: true
+  tlsDisable: true    # TLS handled externally (cert-manager in Phase 4.8)
+                      # In production: set to false and configure TLS
+
+server:
+  # ── Development mode ────────────────────────────────────────────────────────
+  dev:
+    enabled: true
+    devRootToken: "freshmart-vault-root"    # Root token for dev — NOT for prod
+
+  # ── Resources ────────────────────────────────────────────────────────────────
+  resources:
+    requests:
+      cpu:    100m
+      memory: 256Mi
+    limits:
+      cpu:    500m
+      memory: 512Mi
+
+  # ── Readiness / liveness ────────────────────────────────────────────────────
+  readinessProbe:
+    enabled: true
+    path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
+
+  # ── Service ──────────────────────────────────────────────────────────────────
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 8200
+
+  # ── Audit log (Phase 7: enable on EKS) ──────────────────────────────────────
+  # auditStorage:
+  #   enabled: true
+  #   size: 10Gi
+
+# ── Vault UI ─────────────────────────────────────────────────────────────────
+# Accessible via: kubectl port-forward -n tesco-security svc/vault 8200:8200
+# Then open: http://localhost:8200 (token: freshmart-vault-root)
+ui:
+  enabled: true
+  serviceType: ClusterIP
+
+# ── Injector disabled — we use External Secrets Operator ─────────────────────
+# Vault Agent Injector and ESO are alternative approaches.
+# ESO (our choice): pulls secrets into K8s Secrets on a schedule.
+# Injector: injects secrets directly into pod filesystem via sidecar.
+# We use ESO because: no sidecar overhead, existing workloads unchanged.
+injector:
+  enabled: false
+
+# ── CSI Provider disabled (using ESO) ────────────────────────────────────────
+csi:
+  enabled: false

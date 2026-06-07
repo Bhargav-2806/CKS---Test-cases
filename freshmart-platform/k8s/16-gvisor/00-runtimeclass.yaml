@@ -1,0 +1,36 @@
+# =============================================================================
+# RuntimeClass — gvisor
+# CKS Domain: Minimize Microservice Vulnerabilities (20%) — container sandboxing
+#
+# A RuntimeClass tells Kubernetes which OCI-compatible container runtime to use
+# for a Pod. The default is runc (standard). This registers "runsc" (gVisor)
+# as an alternative runtime named "gvisor".
+#
+# How it works:
+#   1. Pod spec declares: runtimeClassName: gvisor
+#   2. Kubelet reads this RuntimeClass and sees handler: runsc
+#   3. Kubelet tells containerd: use the "runsc" runtime handler
+#   4. containerd delegates to containerd-shim-runsc-v1
+#   5. runsc starts the container inside the gVisor sandbox
+#
+# Applied to: payment-service only (most sensitive workload)
+# All other services: default runc (no RuntimeClass = runc)
+# =============================================================================
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+  annotations:
+    description: >
+      gVisor sandbox runtime (runsc). Intercepts all syscalls in user space,
+      providing kernel isolation between the container and the host.
+      Use for highest-security workloads: payment-service, secret processors.
+# handler maps to the containerd runtime handler name configured in
+# /etc/containerd/config.toml on each node
+handler: runsc
+
+# scheduling ensures gVisor pods only land on nodes where runsc is installed
+scheduling:
+  nodeSelector:
+    kubernetes.io/arch: amd64    # primary — update to arm64 if on Apple Silicon
+  tolerations: []

@@ -1,0 +1,49 @@
+# =============================================================================
+# Deployment Patches — mount mTLS certs into payment-service and order-service
+#
+# Applied as strategic merge patches via: kubectl apply -f
+# Adds a /certs volume (from the cert-manager Secret) to each deployment.
+# =============================================================================
+
+# ─── payment-service: mount server cert ──────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: tesco-payments
+spec:
+  template:
+    spec:
+      volumes:
+        - name: mtls-certs
+          secret:
+            secretName: payment-server-tls    # Created by cert-manager
+            defaultMode: 0400                 # Read-only by owner (CKS best practice)
+      containers:
+        - name: payment-service
+          volumeMounts:
+            - name: mtls-certs
+              mountPath: /certs
+              readOnly: true
+
+---
+# ─── order-service: mount client cert ────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: tesco-core
+spec:
+  template:
+    spec:
+      volumes:
+        - name: mtls-certs
+          secret:
+            secretName: order-client-tls      # Created by cert-manager
+            defaultMode: 0400
+      containers:
+        - name: order-service
+          volumeMounts:
+            - name: mtls-certs
+              mountPath: /certs
+              readOnly: true

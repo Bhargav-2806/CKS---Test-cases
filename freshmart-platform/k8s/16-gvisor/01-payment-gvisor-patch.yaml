@@ -1,0 +1,32 @@
+# =============================================================================
+# payment-service Deployment — gVisor RuntimeClass patch
+# CKS Domain: Minimize Microservice Vulnerabilities (20%)
+#
+# Adds runtimeClassName: gvisor to payment-service pod spec.
+# This is the ONLY change needed to sandbox a pod with gVisor.
+#
+# CKS Story — payment-service security layers (all combined):
+#   Phase 3:   distroless/static image — no shell, no OS tools
+#   Phase 3:   readOnlyRootFilesystem: true — immutable container FS
+#   Phase 3:   runAsNonRoot: true, uid 65532 — no root access
+#   Phase 3:   NetworkPolicy — only order-service can reach it
+#   Phase 4.4: AppArmor profile — kernel capability restrictions
+#   Phase 4.5: seccomp Localhost profile — syscall allowlist
+#   Phase 4.9: mTLS — mutual TLS client authentication
+#   Phase 4.10: gVisor — kernel-level sandbox (this phase)
+#
+# Multiple overlapping layers = defence in depth.
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: tesco-payments
+spec:
+  template:
+    spec:
+      # runtimeClassName: gvisor tells containerd to use the runsc runtime
+      # instead of the default runc. The pod runs inside gVisor's
+      # user-space kernel — all syscalls are intercepted, not passed
+      # directly to the host kernel.
+      runtimeClassName: gvisor
